@@ -1,0 +1,251 @@
+# Color Palette
+
+Use the **Arctic Reflection** color palette throughout the application to maintain a clean, professional, and research-oriented appearance.
+
+## Primary Colors
+
+Primary Blue
+
+#5289AD
+
+Use for:
+
+- Primary buttons
+- Active sidebar item
+- Links
+- Highlights
+- Icons
+
+---
+
+Dark Blue
+
+#243C4C
+
+Use for:
+
+- Sidebar background
+- Navbar
+- Headings
+- Dark cards
+- Footer
+
+---
+
+Muted Blue Gray
+
+#698696
+
+Use for:
+
+- Secondary buttons
+- Information panels
+- Borders
+- Map UI elements
+
+---
+
+Light Gray Blue
+
+#ACBCBF
+
+Use for:
+
+- Card backgrounds
+- Input borders
+- Tables
+- Dividers
+
+---
+
+Background
+
+#F4FCFB
+
+Use for:
+
+- Application background
+- Page backgrounds
+- Main content area
+
+---
+
+## Status Colors
+
+These colors are used for municipality risk levels and simulation status.
+
+Safe
+
+Green
+
+Low Risk
+
+Yellow
+
+Moderate Risk
+
+Orange
+
+High Risk
+
+Red
+
+Critical
+
+Dark Red
+
+These status colors should only be used for the simulation map, charts, badges, and alerts.
+The primary application interface should continue using the Arctic Reflection palette.
+
+---
+
+## UI Guidelines
+
+- Use a clean dashboard-style interface.
+- Use rounded cards (12–16px border radius).
+- Apply soft shadows for depth.
+- Maintain generous spacing between sections.
+- Use consistent typography and iconography.
+- Keep the interface minimal and uncluttered.
+- Ensure all pages are responsive.
+
+---
+
+## Sidebar
+
+Background
+
+#243C4C
+
+Text
+
+#F4FCFB
+
+Active Item
+
+#5289AD
+
+Hover
+
+#698696
+
+Icons
+
+#F4FCFB
+
+---
+
+## Dashboard Cards
+
+Background
+
+#FFFFFF
+
+Border
+
+#ACBCBF
+
+Title
+
+#243C4C
+
+Value
+
+#5289AD
+
+---
+
+## Buttons
+
+Primary
+
+Background
+
+#5289AD
+
+Text
+
+#FFFFFF
+
+Hover
+
+#243C4C
+
+Secondary
+
+Background
+
+#698696
+
+Text
+
+#FFFFFF
+
+---
+
+## Tables
+
+Header
+
+#243C4C
+
+Header Text
+
+#FFFFFF
+
+Rows
+
+#FFFFFF
+
+Border
+
+#ACBCBF
+
+Hover
+
+#F4FCFB
+
+---
+
+## Charts
+
+Use the Arctic Reflection palette as the default chart colors.
+
+Suggested order:
+
+- #5289AD
+- #698696
+- #243C4C
+- #ACBCBF
+
+Use red, orange, yellow, and green only when visualizing infection severity or risk levels.
+
+---
+
+## Map
+
+Base Theme
+
+Light
+
+Municipality Popup
+
+Background
+
+#FFFFFF
+
+Border
+
+#ACBCBF
+
+Title
+
+#243C4C
+
+Labels
+
+#698696
+
+Buttons
+
+#5289AD

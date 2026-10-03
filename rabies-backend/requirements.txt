@@ -1,0 +1,22 @@
+# Python Backend Requirements for PAWPATROL Rabies Simulation System
+# Academic Research Implementation - Fractional-Order Stochastic Transmission Model
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Data Validation
+pydantic==2.5.0
+
+# Scientific Computing
+numpy==1.26.2
+scipy==1.11.4
+
+# Configuration
+python-dotenv==1.0.0
+
+# CORS Support
+fastapi-cors==0.0.6
+
+# Optional: For better performance
+# numba==0.58.1  # JIT compilation for numerical functions

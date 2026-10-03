@@ -1,0 +1,694 @@
+<template>
+  <div class="space-y-6">
+    <!-- Header Actions -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-dark-blue">My Municipality Data</h2>
+        <p class="text-muted-blue">Manage {{ currentMunicipality?.name || 'your municipality' }} data and information</p>
+      </div>
+      <div class="flex gap-3" v-if="ownMunicipalityData">
+        <Button 
+          label="Edit My Data" 
+          icon="pi pi-pencil" 
+          @click="openEditDialog"
+        />
+        <Button 
+          label="Reset My Data" 
+          icon="pi pi-refresh" 
+          severity="secondary"
+          @click="confirmResetData"
+        />
+      </div>
+    </div>
+
+    <!-- Municipality Info Card -->
+    <div v-if="ownMunicipalityData">
+      <Card class="bg-white">
+        <template #header>
+          <div class="px-6 py-4 border-b border-light-blue">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-dark-blue">{{ ownMunicipalityData.name }}</h3>
+              <div class="flex items-center space-x-2">
+                <div :class="getRiskBadgeClass(ownMunicipalityData.riskLevel)" class="px-3 py-1 rounded-full text-sm font-medium">
+                  {{ getRiskLevelLabel(ownMunicipalityData.riskLevel) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <template #content>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Location Information -->
+              <div class="space-y-4">
+                <h4 class="font-semibold text-dark-blue mb-3">Location</h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Latitude:</span>
+                    <span class="font-medium">{{ ownMunicipalityData.latitude }}°</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Longitude:</span>
+                    <span class="font-medium">{{ ownMunicipalityData.longitude }}°</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Population Density:</span>
+                    <span class="font-medium">{{ ownMunicipalityData.populationDensity || 'N/A' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Population Data -->
+              <div class="space-y-4">
+                <h4 class="font-semibold text-dark-blue mb-3">Population</h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Human Population:</span>
+                    <span class="font-medium">{{ (ownMunicipalityData.humanPopulation || 0).toLocaleString() }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Dog Population:</span>
+                    <span class="font-medium">{{ (ownMunicipalityData.dogPopulation || 0).toLocaleString() }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Cat Population:</span>
+                    <span class="font-medium">{{ (ownMunicipalityData.catPopulation || 0).toLocaleString() }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Infection Data -->
+              <div class="space-y-4">
+                <h4 class="font-semibold text-dark-blue mb-3">Current Status</h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Infected Dogs:</span>
+                    <span class="font-medium text-risk-high">{{ ownMunicipalityData.infectedDogs || 0 }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Infected Cats:</span>
+                    <span class="font-medium text-risk-high">{{ ownMunicipalityData.infectedCats || 0 }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Infected Humans:</span>
+                    <span class="font-medium text-risk-high">{{ ownMunicipalityData.infectedHumans || 0 }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-muted-blue">Vaccinated Dogs:</span>
+                    <span class="font-medium text-risk-safe">{{ ownMunicipalityData.vaccinatedDogs || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </Card>
+    </div>
+
+    <!-- No Data Message -->
+    <div v-else class="text-center py-12">
+      <div class="w-16 h-16 mx-auto bg-muted-blue/10 rounded-full flex items-center justify-center mb-4">
+        <i class="pi pi-exclamation-triangle text-muted-blue text-2xl"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-dark-blue mb-2">No Municipality Data</h3>
+      <p class="text-muted-blue mb-4">Unable to load your municipality data. Please contact support.</p>
+    </div>
+
+    <!-- Edit My Municipality Data Form -->
+    <Card v-if="ownMunicipalityData" class="bg-white">
+      <template #header>
+        <div class="px-6 py-4 border-b border-light-blue">
+          <h3 class="text-lg font-semibold text-dark-blue">Update My Municipality Data</h3>
+        </div>
+      </template>
+      <template #content>
+        <form @submit.prevent="saveMunicipalityData" class="p-6 space-y-6">
+        <!-- Basic Information -->
+        <div>
+          <h4 class="text-md font-semibold text-dark-blue mb-3 pb-2 border-b border-light-blue">Basic Information</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-dark-blue mb-2">Municipality Name *</label>
+              <InputText 
+                v-model="municipalityForm.name" 
+                :class="{ 'p-invalid': errors.name }"
+                placeholder="Enter municipality name"
+                class="w-full"
+              />
+              <small v-if="errors.name" class="p-error">{{ errors.name }}</small>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-dark-blue mb-2">Risk Level</label>
+              <Dropdown 
+                v-model="municipalityForm.riskLevel" 
+                :options="riskLevelOptions" 
+                optionLabel="label" 
+                optionValue="value"
+                placeholder="Select risk level"
+                class="w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Coordinates -->
+        <div>
+          <h4 class="text-md font-semibold text-dark-blue mb-3 pb-2 border-b border-light-blue">Geographic Coordinates</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Latitude *</label>
+            <InputNumber 
+              v-model="municipalityForm.latitude" 
+              :class="{ 'p-invalid': errors.latitude }"
+              :minFractionDigits="4"
+              :maxFractionDigits="6"
+              placeholder="7.0000"
+              class="w-full"
+            />
+            <small v-if="errors.latitude" class="p-error">{{ errors.latitude }}</small>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Longitude *</label>
+            <InputNumber 
+              v-model="municipalityForm.longitude" 
+              :class="{ 'p-invalid': errors.longitude }"
+              :minFractionDigits="4"
+              :maxFractionDigits="6"
+              placeholder="125.0000"
+              class="w-full"
+            />
+            <small v-if="errors.longitude" class="p-error">{{ errors.longitude }}</small>
+          </div>
+        </div>
+        </div>
+
+        <!-- Population Data -->
+        <div>
+          <h4 class="text-md font-semibold text-dark-blue mb-3 pb-2 border-b border-light-blue">Population Data</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-dark-blue mb-2">Human Population *</label>
+            <InputNumber 
+              v-model="municipalityForm.humanPopulation" 
+              :class="{ 'p-invalid': errors.humanPopulation }"
+              :min="0"
+              placeholder="50000"
+              class="w-full"
+            />
+            <small v-if="errors.humanPopulation" class="p-error">{{ errors.humanPopulation }}</small>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Dog Population *</label>
+            <InputNumber 
+              v-model="municipalityForm.dogPopulation" 
+              :class="{ 'p-invalid': errors.dogPopulation }"
+              :min="0"
+              placeholder="1000"
+              class="w-full"
+            />
+            <small v-if="errors.dogPopulation" class="p-error">{{ errors.dogPopulation }}</small>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Cat Population *</label>
+            <InputNumber 
+              v-model="municipalityForm.catPopulation" 
+              :class="{ 'p-invalid': errors.catPopulation }"
+              :min="0"
+              placeholder="500"
+              class="w-full"
+            />
+            <small v-if="errors.catPopulation" class="p-error">{{ errors.catPopulation }}</small>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Population Density *</label>
+            <InputNumber 
+              v-model="municipalityForm.populationDensity" 
+              :class="{ 'p-invalid': errors.populationDensity }"
+              :min="0"
+              :minFractionDigits="1"
+              :maxFractionDigits="2"
+              placeholder="150.5"
+              suffix=" persons/km²"
+              class="w-full"
+            />
+            <small v-if="errors.populationDensity" class="p-error">{{ errors.populationDensity }}</small>
+            <small class="text-muted-blue block mt-1">
+              Population per square kilometer (ρ parameter for spatial heterogeneity)
+            </small>
+          </div>
+        </div>
+        </div>
+
+        <!-- Infection Data -->
+        <div>
+          <h4 class="text-md font-semibold text-dark-blue mb-3 pb-2 border-b border-light-blue">Infection Status</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-dark-blue mb-2">Infected Dogs</label>
+              <InputNumber 
+                v-model="municipalityForm.infectedDogs" 
+                :min="0"
+              :max="municipalityForm.dogPopulation || 0"
+              placeholder="0"
+              class="w-full"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Infected Cats</label>
+            <InputNumber 
+              v-model="municipalityForm.infectedCats" 
+              :min="0"
+              :max="municipalityForm.catPopulation || 0"
+              placeholder="0"
+              class="w-full"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Infected Humans</label>
+            <InputNumber 
+              v-model="municipalityForm.infectedHumans" 
+              :min="0"
+              :max="municipalityForm.humanPopulation || 0"
+              placeholder="0"
+              class="w-full"
+            />
+          </div>
+        </div>
+        </div>
+
+        <!-- Vaccination Data -->
+        <div>
+          <h4 class="text-md font-semibold text-dark-blue mb-3 pb-2 border-b border-light-blue">Vaccination Coverage</h4>
+          <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Vaccinated Dogs</label>
+            <InputNumber 
+              v-model="municipalityForm.vaccinatedDogs" 
+              :min="0"
+              :max="municipalityForm.dogPopulation || 0"
+              placeholder="0"
+              class="w-full"
+            />
+            <small class="text-muted-blue block mt-2">
+              Coverage: {{ vaccinationCoverage }}%
+            </small>
+          </div>
+        </div>
+
+        <!-- Connected Municipalities -->
+        <div>
+          <h4 class="text-md font-semibold text-dark-blue mb-3 pb-2 border-b border-light-blue">Municipality Connections</h4>
+          <div>
+            <label class="block text-sm font-medium text-dark-blue mb-2">Connected Municipalities</label>
+            <MultiSelect 
+              v-model="municipalityForm.connectedMunicipalities" 
+              :options="availableMunicipalities" 
+              optionLabel="name" 
+              optionValue="id"
+              placeholder="Select connected municipalities"
+              :maxSelectedLabels="3"
+              class="w-full"
+            />
+            <small class="text-muted-blue block mt-2">
+              Select municipalities that share borders or have direct transmission routes
+            </small>
+          </div>
+        </div>
+
+        <!-- Dialog Actions -->
+        <div class="flex justify-end space-x-3 pt-6 border-t border-light-blue mt-6">
+          <Button 
+            label="Cancel" 
+            severity="secondary"
+            @click="closeDialog"
+          />
+          <Button 
+            type="submit"
+            :label="isEditing ? 'Update Municipality' : 'Create Municipality'" 
+            :loading="saving"
+          />
+        </div>
+      </form>
+    </Dialog>
+
+    <!-- View Municipality Dialog -->
+    <Dialog 
+      v-model:visible="showViewDialog" 
+      :modal="true" 
+      :style="{ width: '50rem', maxHeight: '85vh' }" 
+      :breakpoints="{ '1199px': '80vw', '768px': '90vw', '575px': '95vw' }"
+      :header="`${selectedMunicipality?.name} Details`"
+      :draggable="false"
+      :contentStyle="{ overflow: 'auto' }"
+    >
+      <div v-if="selectedMunicipality" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <strong class="text-dark-blue">Coordinates:</strong>
+            <p class="text-muted-blue">{{ selectedMunicipality.latitude }}, {{ selectedMunicipality.longitude }}</p>
+          </div>
+          <div>
+            <strong class="text-dark-blue">Risk Level:</strong>
+            <p>
+              <span 
+                class="px-2 py-1 rounded-full text-xs font-medium"
+                :class="getRiskBadgeClass(selectedMunicipality.riskLevel)"
+              >
+                {{ getRiskLabel(selectedMunicipality.riskLevel) }}
+              </span>
+            </p>
+          </div>
+          <div>
+            <strong class="text-dark-blue">Human Population:</strong>
+            <p class="text-muted-blue">{{ selectedMunicipality.humanPopulation.toLocaleString() }}</p>
+          </div>
+          <div>
+            <strong class="text-dark-blue">Dog Population:</strong>
+            <p class="text-muted-blue">{{ selectedMunicipality.dogPopulation.toLocaleString() }}</p>
+          </div>
+          <div>
+            <strong class="text-dark-blue">Cat Population:</strong>
+            <p class="text-muted-blue">{{ selectedMunicipality.catPopulation.toLocaleString() }}</p>
+          </div>
+          <div>
+            <strong class="text-dark-blue">Population Density:</strong>
+            <p class="text-muted-blue">{{ selectedMunicipality.populationDensity }} persons/km²</p>
+          </div>
+          <div>
+            <strong class="text-dark-blue">Vaccination Coverage:</strong>
+            <p class="text-muted-blue">{{ Math.round((selectedMunicipality.vaccinatedDogs / selectedMunicipality.dogPopulation) * 100) }}%</p>
+          </div>
+        </div>
+        
+        <div v-if="selectedMunicipality.connectedMunicipalities?.length">
+          <strong class="text-dark-blue">Connected Municipalities:</strong>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <span 
+              v-for="connectionId in selectedMunicipality.connectedMunicipalities" 
+              :key="connectionId"
+              class="px-2 py-1 bg-background text-primary text-xs rounded-full"
+            >
+              {{ getMunicipalityName(connectionId) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </Dialog>
+
+    <!-- Confirmation Dialogs -->
+    <ConfirmDialog />
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useAppStore } from '@/stores'
+import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
+import { FilterMatchMode } from 'primevue/api'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
+
+const appStore = useAppStore()
+const toast = useToast()
+const confirm = useConfirm()
+
+// Component state
+const municipalities = computed(() => appStore.municipalities)
+const loading = ref(false)
+const saving = ref(false)
+const showDialog = ref(false)
+const showViewDialog = ref(false)
+const isEditing = ref(false)
+const selectedMunicipality = ref(null)
+
+// Form data
+const municipalityForm = ref({
+  name: '',
+  latitude: null,
+  longitude: null,
+  humanPopulation: null,
+  dogPopulation: null,
+  catPopulation: null,
+  populationDensity: null,
+  infectedDogs: 0,
+  infectedCats: 0,
+  infectedHumans: 0,
+  vaccinatedDogs: 0,
+  riskLevel: 'safe',
+  connectedMunicipalities: []
+})
+
+const errors = ref({})
+
+// Table filters
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+})
+
+// Options
+const riskLevelOptions = [
+  { label: 'Safe', value: 'safe' },
+  { label: 'Low Risk', value: 'low' },
+  { label: 'Moderate Risk', value: 'moderate' },
+  { label: 'High Risk', value: 'high' },
+  { label: 'Critical', value: 'critical' }
+]
+
+// Computed properties
+const availableMunicipalities = computed(() => {
+  return municipalities.value.filter(m => m.id !== municipalityForm.value.id)
+})
+
+const highRiskCount = computed(() => {
+  return municipalities.value.filter(m => ['high', 'critical'].includes(m.riskLevel)).length
+})
+
+const totalDogPopulation = computed(() => {
+  return municipalities.value.reduce((sum, m) => sum + (m.dogPopulation || 0), 0)
+})
+
+const vaccinationPercentage = computed(() => {
+  const totalDogs = totalDogPopulation.value
+  const totalVaccinated = municipalities.value.reduce((sum, m) => sum + (m.vaccinatedDogs || 0), 0)
+  return totalDogs > 0 ? Math.round((totalVaccinated / totalDogs) * 100) : 0
+})
+
+const vaccinationCoverage = computed(() => {
+  const dogs = municipalityForm.value.dogPopulation || 0
+  const vaccinated = municipalityForm.value.vaccinatedDogs || 0
+  return dogs > 0 ? Math.round((vaccinated / dogs) * 100) : 0
+})
+
+// Methods
+const openCreateDialog = () => {
+  resetForm()
+  isEditing.value = false
+  showDialog.value = true
+}
+
+const editMunicipality = (municipality) => {
+  municipalityForm.value = { ...municipality }
+  isEditing.value = true
+  showDialog.value = true
+}
+
+const viewMunicipality = (municipality) => {
+  selectedMunicipality.value = municipality
+  showViewDialog.value = true
+}
+
+const closeDialog = () => {
+  showDialog.value = false
+  resetForm()
+  errors.value = {}
+}
+
+const resetForm = () => {
+  municipalityForm.value = {
+    name: '',
+    latitude: null,
+    longitude: null,
+    humanPopulation: null,
+    dogPopulation: null,
+    catPopulation: null,
+    populationDensity: null,
+    infectedDogs: 0,
+    infectedCats: 0,
+    infectedHumans: 0,
+    vaccinatedDogs: 0,
+    riskLevel: 'safe',
+    connectedMunicipalities: []
+  }
+}
+
+const validateForm = () => {
+  errors.value = {}
+  
+  if (!municipalityForm.value.name?.trim()) {
+    errors.value.name = 'Municipality name is required'
+  }
+  
+  if (!municipalityForm.value.latitude) {
+    errors.value.latitude = 'Latitude is required'
+  } else if (municipalityForm.value.latitude < 6 || municipalityForm.value.latitude > 8) {
+    errors.value.latitude = 'Latitude must be between 6 and 8 for Davao de Oro'
+  }
+  
+  if (!municipalityForm.value.longitude) {
+    errors.value.longitude = 'Longitude is required'
+  } else if (municipalityForm.value.longitude < 125 || municipalityForm.value.longitude > 127) {
+    errors.value.longitude = 'Longitude must be between 125 and 127 for Davao de Oro'
+  }
+  
+  if (!municipalityForm.value.humanPopulation || municipalityForm.value.humanPopulation < 1) {
+    errors.value.humanPopulation = 'Human population must be greater than 0'
+  }
+  
+  if (!municipalityForm.value.dogPopulation || municipalityForm.value.dogPopulation < 1) {
+    errors.value.dogPopulation = 'Dog population must be greater than 0'
+  }
+  
+  if (!municipalityForm.value.catPopulation || municipalityForm.value.catPopulation < 1) {
+    errors.value.catPopulation = 'Cat population must be greater than 0'
+  }
+  
+  if (!municipalityForm.value.populationDensity || municipalityForm.value.populationDensity < 1) {
+    errors.value.populationDensity = 'Population density must be greater than 0'
+  }
+  
+  return Object.keys(errors.value).length === 0
+}
+
+const saveMunicipality = async () => {
+  if (!validateForm()) return
+  
+  saving.value = true
+  
+  try {
+    // Mark risk level as user-set if it was manually selected
+    const municipalityData = {
+      ...municipalityForm.value,
+      userSetRiskLevel: true // Mark this as manually set by user
+    }
+    
+    if (isEditing.value) {
+      appStore.updateMunicipality(municipalityForm.value.id, municipalityData)
+      toast.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Municipality updated successfully',
+        life: 3000
+      })
+    } else {
+      appStore.addMunicipality(municipalityData)
+      toast.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Municipality created successfully',
+        life: 3000
+      })
+    }
+    
+    closeDialog()
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to save municipality',
+      life: 3000
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+const confirmDeleteMunicipality = (municipality) => {
+  confirm.require({
+    message: `Are you sure you want to delete ${municipality.name}? This action cannot be undone.`,
+    header: 'Delete Confirmation',
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    accept: () => deleteMunicipality(municipality)
+  })
+}
+
+const deleteMunicipality = (municipality) => {
+  appStore.deleteMunicipality(municipality.id)
+  toast.add({
+    severity: 'success',
+    summary: 'Success',
+    detail: `${municipality.name} deleted successfully`,
+    life: 3000
+  })
+}
+
+const confirmResetData = () => {
+  confirm.require({
+    message: 'Are you sure you want to reset all municipality data? This will restore the default dataset and cannot be undone.',
+    header: 'Reset Confirmation',
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    accept: () => resetData()
+  })
+}
+
+const resetData = () => {
+  appStore.resetToDefaults()
+  toast.add({
+    severity: 'success',
+    summary: 'Success',
+    detail: 'Municipality data has been reset to defaults',
+    life: 3000
+  })
+}
+
+// Utility methods
+const getRiskBadgeClass = (riskLevel) => {
+  const classes = {
+    safe: 'bg-risk-safe/10 text-risk-safe',
+    low: 'bg-risk-low/10 text-risk-low',
+    moderate: 'bg-risk-moderate/10 text-risk-moderate',
+    high: 'bg-risk-high/10 text-risk-high',
+    critical: 'bg-risk-critical/10 text-risk-critical'
+  }
+  return classes[riskLevel] || classes.safe
+}
+
+const getRiskLabel = (riskLevel) => {
+  const labels = {
+    safe: 'Safe',
+    low: 'Low Risk',
+    moderate: 'Moderate',
+    high: 'High Risk',
+    critical: 'Critical'
+  }
+  return labels[riskLevel] || 'Safe'
+}
+
+const getInfectionTextClass = (count) => {
+  if (count === 0) return 'text-risk-safe font-medium'
+  if (count < 5) return 'text-risk-low font-medium'
+  if (count < 10) return 'text-risk-moderate font-medium'
+  return 'text-risk-high font-medium'
+}
+
+const getMunicipalityName = (id) => {
+  const municipality = municipalities.value.find(m => m.id === id)
+  return municipality ? municipality.name : 'Unknown'
+}
+
+onMounted(() => {
+  // Simulate loading for better UX
+  loading.value = true
+  setTimeout(() => {
+    loading.value = false
+  }, 500)
+})
+</script>

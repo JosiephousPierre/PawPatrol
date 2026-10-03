@@ -1,0 +1,145 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  background-color: #F4FCFB;
+  color: #243C4C;
+  line-height: 1.6;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4FCFB;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ACBCBF;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #698696;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease;
+}
+
+/* PrimeVue customizations */
+.p-button {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+}
+
+.p-button.p-button-primary {
+  background: #5289AD !important;
+  border-color: #5289AD !important;
+}
+
+.p-button.p-button-primary:hover {
+  background: #243C4C !important;
+  border-color: #243C4C !important;
+}
+
+.p-button.p-button-secondary {
+  background: #698696 !important;
+  border-color: #698696 !important;
+  color: white !important;
+}
+
+.p-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #ACBCBF !important;
+}
+
+.p-card .p-card-title {
+  color: #243C4C !important;
+  font-weight: 600 !important;
+}
+
+/* Custom utility classes */
+.text-primary {
+  color: #5289AD;
+}
+
+.text-dark-blue {
+  color: #243C4C;
+}
+
+.text-muted-blue {
+  color: #698696;
+}
+
+.bg-primary {
+  background-color: #5289AD;
+}
+
+.bg-dark-blue {
+  background-color: #243C4C;
+}
+
+.bg-light-blue {
+  background-color: #ACBCBF;
+}
+
+/* Pulsing animation for highest-risk marker */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-marker {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.highest-risk-marker {
+  animation: pulse-marker 2s ease-in-out infinite;
+}
+
+/* Leaflet custom marker styles */
+.critical-marker-container {
+  position: relative;
+}
+
+.critical-marker-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid #991b1b;
+  transform: translate(-50%, -50%);
+  animation: pulse-ring 2s ease-out infinite;
+  pointer-events: none;
+}

@@ -1,0 +1,462 @@
+# PAWPATROL Prototype Development Instructions
+
+## Project Overview
+
+Create a web-based research prototype called **PAWPATROL (Hybrid Quantum-Classical Framework for Adaptive Rabies Transmission Modeling and Vaccination Optimization).**
+
+The purpose of the system is to simulate rabies transmission across the municipalities of Davao de Oro and demonstrate adaptive vaccination recommendations based on the proposed research framework.
+
+This application is a **frontend-only research prototype** intended for academic demonstration and presentation.
+
+## Requirements
+
+- Use dummy/simulated data only.
+- Store all application data using the browser's Local Storage.
+- Do NOT implement a backend server.
+- Do NOT use a database.
+- Do NOT implement a real Deep Reinforcement Learning (DRL) model.
+- Implement a rule-based adaptive vaccination decision engine that mimics the behavior of the proposed DRL.
+- Do NOT implement quantum computing.
+- Focus on demonstrating the workflow presented in the research paper.
+- The application must be deployable as a static website (Vercel or Netlify).
+
+---
+
+# Technology Stack
+
+## Frontend
+
+- Vue 3
+- Vite
+- Vue Router
+- Pinia
+- PrimeVue
+- Tailwind CSS
+- Leaflet.js
+- Chart.js
+
+## Data Storage
+
+Use the browser's **Local Storage**.
+
+Store:
+
+- Municipality data
+- Simulation configuration
+- Simulation results
+- Adaptive vaccination recommendations
+
+Initialize dummy data automatically on the first application load.
+
+---
+
+# Authentication
+
+Do NOT implement authentication.
+
+- No Login
+- No Registration
+- No User Roles
+
+The application is a standalone research prototype.
+
+---
+
+# Landing Page
+
+Create a modern landing page introducing the project.
+
+The landing page should contain:
+
+- System Title
+- Project Description
+- About the Research
+- Research Objectives
+- Key Features
+- Technology Stack
+- Researchers
+- Footer
+
+Create a **Get Started** button.
+
+When clicked,
+
+navigate to
+
+```
+/dashboard
+```
+
+---
+
+# Dashboard
+
+Create a dashboard page.
+
+Display summary cards.
+
+Cards
+
+- Total Municipalities
+- Total Dog Population
+- Total Cat Population
+- Total Human Population
+- Current Infected Dogs
+- Current Infected Cats
+- Current Infected Humans
+- Current Simulation Day
+
+Provide quick action buttons.
+
+- Municipality Management
+- Simulation
+- Results
+
+---
+
+# Municipality Management
+
+Create a CRUD page for municipality information.
+
+Each municipality should contain:
+
+- Municipality Name
+- Latitude
+- Longitude
+- Connected Municipalities
+- Dog Population
+- Cat Population
+- Human Population
+- Initial Infected Dogs
+- Initial Infected Cats
+- Initial Infected Humans
+- Vaccinated Dogs
+
+Functions
+
+- Add Municipality
+- Edit Municipality
+- Delete Municipality
+- Reset Dummy Data
+
+Persist all municipality information using Local Storage.
+
+---
+
+# Simulation Configuration
+
+Create a configuration page.
+
+Allow users to configure:
+
+- Simulation Days
+- Transmission Rate
+- Vaccination Rate
+- Fractional Alpha
+- Environmental Randomness
+- Simulation Speed
+
+Simulation Speed
+
+- 1x
+- 2x
+- 5x
+- 10x
+
+Buttons
+
+- Run Simulation
+- Reset Configuration
+
+Save the configuration using Local Storage.
+
+---
+
+# Transmission Simulation Engine
+
+Implement the transmission simulation entirely in the frontend.
+
+Responsibilities
+
+- Load municipality data
+- Initialize outbreak
+- Calculate transmission probability
+- Spread infection between connected municipalities
+- Update infected populations
+- Update vaccinated populations
+- Calculate municipality risk levels
+- Save simulation results
+
+Simulation Controls
+
+- Start
+- Pause
+- Resume
+- Reset
+
+The simulation should execute day-by-day.
+
+Persist simulation results using Local Storage.
+
+---
+
+# Adaptive Vaccination Decision Module (DRL Prototype)
+
+Create a frontend rule-based adaptive vaccination engine.
+
+This module represents the proposed DRL component from the research.
+
+IMPORTANT
+
+Do NOT use:
+
+- Machine Learning
+- TensorFlow
+- PyTorch
+- AI APIs
+- Deep Learning Libraries
+
+Instead,
+
+implement deterministic rule-based logic.
+
+Inputs
+
+- Current infection counts
+- Municipality risk level
+- Neighbor municipality infection status
+- Vaccination coverage
+
+Outputs
+
+- Recommended Municipality
+- Vaccination Percentage
+- Priority
+- Decision Reason
+
+Example Rules
+
+Rule 1
+
+IF Infection Rate > 70%
+
+THEN
+
+Recommend
+
+Vaccinate 90%
+
+Priority: High
+
+--------------------------------
+
+Rule 2
+
+IF Neighbor Municipality is Infected
+
+Increase Priority
+
+--------------------------------
+
+Rule 3
+
+IF Infection Rate < 20%
+
+Monitor Only
+
+--------------------------------
+
+Rule 4
+
+IF Vaccination Resources are Limited
+
+Prioritize Highest Risk Municipality
+
+Persist recommendations using Local Storage.
+
+---
+
+# Results Page
+
+Create a simulation results page.
+
+The page should contain the following sections.
+
+## Interactive Map
+
+Display all municipalities in Davao de Oro.
+
+Requirements
+
+- Municipality markers or boundaries
+- Municipality coloring based on risk level
+- Municipality information popup
+- Highlight selected municipality
+
+Risk Colors
+
+- Green — Safe
+- Yellow — Low
+- Orange — Moderate
+- Red — High
+- Dark Red — Critical
+
+---
+
+## Infection Charts
+
+Display
+
+- Dog Infection Trend
+- Cat Infection Trend
+- Human Infection Trend
+
+Charts should update according to the simulation.
+
+---
+
+## Adaptive Vaccination Recommendation
+
+Display
+
+- Municipality
+- Recommendation
+- Priority
+- Vaccination Percentage
+- Decision Reason
+
+---
+
+## Simulation Log
+
+Display simulation events day-by-day.
+
+Example
+
+Day 1
+
+Maco outbreak detected.
+
+Day 3
+
+Vaccination recommended.
+
+Day 5
+
+Transmission reached Mawab.
+
+Day 8
+
+Outbreak slowing.
+
+---
+
+# About Page
+
+Create an About page containing:
+
+- Abstract
+- Research Objectives
+- Proposed Framework
+- Technology Stack
+- Disclaimer
+
+---
+
+# Local Storage Structure
+
+Store the following keys:
+
+municipalities
+
+simulationSettings
+
+simulationResults
+
+vaccinationRecommendations
+
+The application should automatically initialize these keys with dummy data if they do not already exist.
+
+---
+
+# Suggested Project Structure
+
+src/
+
+assets/
+
+components/
+
+composables/
+
+data/
+
+layouts/
+
+pages/
+
+router/
+
+services/
+
+stores/
+
+utils/
+
+App.vue
+
+main.js
+
+---
+
+# User Workflow
+
+Landing Page
+
+↓
+
+Get Started
+
+↓
+
+Dashboard
+
+↓
+
+Manage Municipality Data
+
+↓
+
+Configure Simulation
+
+↓
+
+Run Simulation
+
+↓
+
+Transmission Simulation Engine
+
+↓
+
+Adaptive Vaccination Decision Module
+
+↓
+
+Results Page
+
+↓
+
+Review Map, Charts, Recommendations, and Simulation Logs
+
+---
+
+# Important Notes
+
+This project is a research prototype.
+
+The objective is to demonstrate the workflow described in the research paper rather than build a production-ready epidemiological system.
+
+The Adaptive Vaccination Decision Module is implemented as a rule-based engine that simulates the behavior of the proposed Deep Reinforcement Learning component.
+
+The application should run entirely on the frontend using Local Storage and should be easy to deploy as a static website for research demonstration.

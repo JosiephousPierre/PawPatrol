@@ -29,6 +29,15 @@ from models.response_models import SimulationResponse, ValidationResponse
 from simulation.transmission_model import run_fractional_stochastic_simulation
 from simulation.risk_calculator import calculate_risk_scores, categorize_risk_levels, categorize_risk_level
 
+# Import DRL module
+try:
+    from drl.inference import get_recommender
+    DRL_AVAILABLE = True
+    print("✅ DRL module loaded successfully")
+except ImportError as e:
+    DRL_AVAILABLE = False
+    print(f"⚠️  DRL module not available: {e}")
+
 # Initialize FastAPI app
 app = FastAPI(
     title="PAWPATROL Rabies Simulation API",
@@ -224,6 +233,148 @@ async def run_simulation(request: SimulationRequest):
             }
         )
 
+@app.post("/api/drl-recommend")
+async def get_drl_recommendations(request: dict):
+    """
+    Get DRL-based vaccination recommendations
+    
+    Uses trained Deep Q-Network to recommend optimal vaccination strategies
+    based on current municipality conditions.
+    
+    Args:
+        request: Dictionary with 'municipalities' list
+        
+    Returns:
+        dict: DRL recommendations for each municipality
+        
+    Example Request:
+        {
+            "municipalities": [
+                {
+                    "id": "1",
+                    "name": "Maco",
+                    "dogPopulation": 3000,
+                    "catPopulation": 1500,
+                    "infectedDogs": 15,
+                    "infectedCats": 3,
+                    "vaccinatedDogs": 900,
+                    "populationDensity": 295.2,
+                    "riskLevel": "moderate",
+                    "connectedMunicipalities": ["2", "3"]
+                }
+            ]
+        }
+    
+    Example Response:
+        {
+            "success": true,
+            "drl_available": true,
+            "recommendations": [
+                {
+                    "municipality_id": "1",
+                    "municipality_name": "Maco",
+                    "recommended_vaccination": 0.8,
+                    "confidence": 0.75,
+                    "explanation": "DRL recommends high vaccination...",
+                    "source": "drl"
+                }
+            ]
+        }
+    """
+    try:
+        if not DRL_AVAILABLE:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "message": "DRL module not available",
+                    "error": "Deep Reinforcement Learning model not loaded"
+                }
+            )
+        
+        # Get municipalities from request
+        municipalities = request.get('municipalities', [])
+        
+        if not municipalities:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": "No municipalities provided",
+                    "error": "Request must include 'municipalities' array"
+                }
+            )
+        
+        # Get DRL recommender
+        recommender = get_recommender()
+        
+        if not recommender.is_available():
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "message": "DRL model not loaded",
+                    "error": "Trained DQN model file not found"
+                }
+            )
+        
+        # Get recommendations
+        recommendations = recommender.get_batch_recommendations(municipalities)
+        
+        return {
+            "success": True,
+            "drl_available": True,
+            "model_version": "1.0",
+            "recommendations": recommendations,
+            "metadata": {
+                "model_type": "Deep Q-Network (DQN)",
+                "training_steps": 100000,
+                "municipalities_analyzed": len(municipalities)
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "DRL recommendation failed",
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/drl-status")
+async def get_drl_status():
+    """
+    Check DRL model availability and status
+    
+    Returns:
+        dict: DRL system status
+    """
+    if not DRL_AVAILABLE:
+        return {
+            "available": False,
+            "loaded": False,
+            "message": "DRL module not available (dependencies not installed)"
+        }
+    
+    try:
+        recommender = get_recommender()
+        is_loaded = recommender.is_available()
+        
+        return {
+            "available": True,
+            "loaded": is_loaded,
+            "model_path": "./drl/models/dqn_rabies_vaccination.zip",
+            "model_version": "1.0",
+            "message": "DRL model loaded and ready" if is_loaded else "DRL model file not found"
+        }
+    except Exception as e:
+        return {
+            "available": True,
+            "loaded": False,
+            "error": str(e),
+            "message": "Error checking DRL status"
+        }
+
 # ============================================================================
 # STARTUP / SHUTDOWN EVENTS
 # ============================================================================
@@ -234,6 +385,17 @@ async def startup_event():
     print("=" * 60)
     print("PAWPATROL Rabies Simulation API Starting...")
     print("Model: Fractional-Order Stochastic Transmission")
+    if DRL_AVAILABLE:
+        try:
+            recommender = get_recommender()
+            if recommender.is_available():
+                print("DRL: ✅ Deep Q-Network Model Loaded")
+            else:
+                print("DRL: ⚠️  Model file not found")
+        except Exception as e:
+            print(f"DRL: ❌ Error: {e}")
+    else:
+        print("DRL: ⚠️  Module not available")
     print("=" * 60)
 
 @app.on_event("shutdown")

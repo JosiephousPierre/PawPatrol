@@ -2,13 +2,11 @@
 
 import { ref, computed } from 'vue'
 import { useAppStore } from '@/stores'
-import { useAdaptiveVaccination } from '@/composables/useAdaptiveVaccination'
 import { simulationLogger, LogSeverity } from '@/services/simulationLogger'
 import { apiClient } from '@/services/apiClient'
 
 export function useSimulationEngine() {
   const appStore = useAppStore()
-  const adaptiveVaccination = useAdaptiveVaccination()
   
   let simulationInterval = null
   let simulationStartTime = null
@@ -116,13 +114,9 @@ export function useSimulationEngine() {
           metadata: response.metadata
         }
         
-        // Generate adaptive vaccination recommendations if enabled
-        if (settings.enableAdaptiveVaccination) {
-          const recommendations = adaptiveVaccination.generateRecommendations()
-        } else {
-          // Still generate recommendations for the Results page display
-          const recommendations = adaptiveVaccination.generateRecommendations()
-        }
+        // DRL vaccination recommendations are now handled via API
+        // Users can click "Get AI Recommendations" button on Results page
+        // This uses the trained Deep Q-Network model via /api/drl-recommend endpoint
         
         simulationLogger.addSimulationStateLog('completed', { 
           model: response.metadata.model,
@@ -250,11 +244,8 @@ export function useSimulationEngine() {
     // Run transmission for this day
     const dayResults = processTransmissionDay(currentDay)
     
-    // Run adaptive vaccination if enabled
-    if (settings.enableAdaptiveVaccination) {
-      const recommendations = adaptiveVaccination.generateRecommendations()
-      applyVaccinationRecommendations(recommendations)
-    }
+    // DRL recommendations are now available via API endpoint
+    // Not applied automatically during simulation to give users control
     
     // Save daily results
     dailyResults.value.push(dayResults)
@@ -428,20 +419,8 @@ export function useSimulationEngine() {
     return 'critical'
   }
   
-  const applyVaccinationRecommendations = (recommendations) => {
-    recommendations.forEach(recommendation => {
-      const municipality = appStore.municipalities.find(m => m.id === recommendation.municipalityId)
-      if (municipality && recommendation.priority !== 'Monitor') {
-        const vaccinationTarget = Math.floor(municipality.dogPopulation * recommendation.recommendedVaccinationPercentage / 100)
-        const additionalVaccinations = Math.max(0, vaccinationTarget - municipality.vaccinatedDogs)
-        
-        if (additionalVaccinations > 0) {
-          municipality.vaccinatedDogs += additionalVaccinations
-          simulationLogger.addVaccinationLog(municipality.name, additionalVaccinations, 'Adaptive recommendation')
-        }
-      }
-    })
-  }
+  // Removed: applyVaccinationRecommendations()
+  // DRL recommendations are now provided via API, users manually decide whether to apply them
   
   const updateSimulationTrends = (dayResults) => {
     if (!appStore.simulationResults.infectionTrends) {

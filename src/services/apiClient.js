@@ -10,6 +10,62 @@ class ApiClient {
     this.baseURL = API_BASE_URL
   }
 
+  /**
+   * Generic GET request
+   * @param {string} endpoint - API endpoint (e.g., '/drl-status')
+   * @returns {Promise<Object>} Response data
+   */
+  async get(endpoint) {
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}/api${endpoint}`
+    console.log('🔍 API Client GET:', url)
+    
+    try {
+      const response = await fetch(url)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      console.log('✅ API Client GET success:', endpoint)
+      return { data, status: response.status }
+    } catch (error) {
+      console.error('❌ API Client GET failed:', endpoint, error.message)
+      throw error
+    }
+  }
+
+  /**
+   * Generic POST request
+   * @param {string} endpoint - API endpoint (e.g., '/drl-recommend')
+   * @param {Object} body - Request body
+   * @returns {Promise<Object>} Response data
+   */
+  async post(endpoint, body) {
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}/api${endpoint}`
+    console.log('📤 API Client POST:', url, body)
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail?.message || `HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      console.log('✅ API Client POST success:', endpoint)
+      return { data, status: response.status }
+    } catch (error) {
+      console.error('❌ API Client POST failed:', endpoint, error.message)
+      throw error
+    }
+  }
+
   async healthCheck() {
     console.log('🔍 API Client: Checking backend health at', `${this.baseURL}/api/health`)
     try {
@@ -44,3 +100,4 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient()
+export default apiClient

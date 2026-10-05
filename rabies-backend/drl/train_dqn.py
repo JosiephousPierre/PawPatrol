@@ -51,7 +51,7 @@ def parse_args():
     parser.add_argument(
         '--preset',
         type=str,
-        default='standard',
+        default='extended',  # Changed default to extended for better coverage
         choices=['fast', 'standard', 'extended'],
         help='Training preset: fast (10K), standard (100K), extended (500K)'
     )
@@ -73,7 +73,7 @@ def parse_args():
     parser.add_argument(
         '--eval-episodes',
         type=int,
-        default=10,
+        default=20,  # Increased for better evaluation
         help='Number of episodes for evaluation'
     )
     

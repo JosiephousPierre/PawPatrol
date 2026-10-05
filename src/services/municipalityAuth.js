@@ -8,39 +8,88 @@ const isAuthenticated = ref(false)
 
 // Predefined municipalities with access codes
 const MUNICIPALITY_REGISTRY = {
-  'MACO-2024': {
+  'MACO': {
     id: 'maco',
     name: 'Maco',
-    code: 'MACO-2024',
+    code: 'MACO',
     region: 'Davao de Oro',
     permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
   },
-  'MAWAB-2024': {
+  'MAWAB': {
     id: 'mawab', 
     name: 'Mawab',
-    code: 'MAWAB-2024',
+    code: 'MAWAB',
     region: 'Davao de Oro',
     permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
   },
-  'NABUNTURAN-2024': {
+  'NABUNTURAN': {
     id: 'nabunturan',
     name: 'Nabunturan', 
-    code: 'NABUNTURAN-2024',
+    code: 'NABUNTURAN',
     region: 'Davao de Oro',
     permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
   },
-  'PANTUKAN-2024': {
+  'PANTUKAN': {
     id: 'pantukan',
     name: 'Pantukan',
-    code: 'PANTUKAN-2024', 
+    code: 'PANTUKAN', 
     region: 'Davao de Oro',
     permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
   },
-  // Add all Davao de Oro municipalities
-  'ADMIN-2024': {
+  'LAAK': {
+    id: 'laak',
+    name: 'Laak',
+    code: 'LAAK',
+    region: 'Davao de Oro',
+    permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
+  },
+  'MONKAYO': {
+    id: 'monkayo',
+    name: 'Monkayo',
+    code: 'MONKAYO',
+    region: 'Davao de Oro',
+    permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
+  },
+  'NEW BATAAN': {
+    id: 'new_bataan',
+    name: 'New Bataan',
+    code: 'NEW BATAAN',
+    region: 'Davao de Oro',
+    permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
+  },
+  'COMPOSTELA': {
+    id: 'compostela',
+    name: 'Compostela',
+    code: 'COMPOSTELA',
+    region: 'Davao de Oro',
+    permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
+  },
+  'MABINI': {
+    id: 'mabini',
+    name: 'Mabini',
+    code: 'MABINI',
+    region: 'Davao de Oro',
+    permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
+  },
+  'MONTEVISTA': {
+    id: 'montevista',
+    name: 'Montevista',
+    code: 'MONTEVISTA',
+    region: 'Davao de Oro',
+    permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
+  },
+  'MARAGUSAN': {
+    id: 'maragusan',
+    name: 'Maragusan',
+    code: 'MARAGUSAN',
+    region: 'Davao de Oro',
+    permissions: ['manage_own_data', 'participate_simulation', 'view_regional_summary']
+  },
+  // Admin account
+  'ADMIN': {
     id: 'admin',
     name: 'Regional Health Office',
-    code: 'ADMIN-2024',
+    code: 'ADMIN',
     region: 'Davao de Oro',
     permissions: ['view_all_data', 'manage_simulations', 'regional_oversight']
   }

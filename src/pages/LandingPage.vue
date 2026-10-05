@@ -14,7 +14,7 @@
             label="Get Started" 
             icon="pi pi-arrow-right" 
             @click="navigateToDashboard"
-            class="px-6 py-2"
+            class="px-6 py-2 gap-2"
           />
         </div>
       </div>
@@ -42,8 +42,8 @@
         </h1>
         
         <p class="text-xl md:text-2xl text-muted-blue mb-4 max-w-4xl mx-auto leading-relaxed animate-slide-up-delay-1">
-          Hybrid Quantum-Classical Framework for Adaptive Rabies Transmission Modeling 
-          and Vaccination Optimization
+          Fractional-Order Stochastic Transmission Model with Deep Reinforcement Learning 
+          for Rabies Outbreak Prediction and Vaccination Optimization
         </p>
         
         <p class="text-lg text-muted-blue mb-10 max-w-3xl mx-auto animate-slide-up-delay-2">
@@ -57,16 +57,16 @@
             icon="pi pi-chart-line" 
             iconPos="right"
             @click="navigateToDashboard"
-            class="px-10 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+            class="px-10 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all gap-2"
           />
           <Button 
-            label="Learn More" 
-            icon="pi pi-arrow-down" 
+            label="View Coverage Map" 
+            icon="pi pi-map" 
             iconPos="right"
             severity="secondary"
             outlined
-            @click="scrollToAbout"
-            class="px-10 py-4 text-lg font-semibold"
+            @click="scrollToMap"
+            class="px-10 py-4 text-lg font-semibold gap-2"
           />
         </div>
         
@@ -77,14 +77,74 @@
             <div class="text-sm text-muted-blue">Municipalities Covered</div>
           </div>
           <div class="bg-white rounded-xl p-6 shadow-card border border-light-blue">
-            <div class="text-4xl font-bold text-primary mb-2">10+</div>
-            <div class="text-sm text-muted-blue">Adaptive Rules</div>
+            <div class="text-4xl font-bold text-primary mb-2">100k+</div>
+            <div class="text-sm text-muted-blue">DQN Training Episodes</div>
           </div>
           <div class="bg-white rounded-xl p-6 shadow-card border border-light-blue">
-            <div class="text-4xl font-bold text-primary mb-2">Real-time</div>
-            <div class="text-sm text-muted-blue">Simulation Engine</div>
+            <div class="text-4xl font-bold text-primary mb-2">Multi-Species</div>
+            <div class="text-sm text-muted-blue">Transmission Model</div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Map Section - Davao de Oro Coverage -->
+    <section id="map-section" class="py-24 px-4 bg-gradient-to-b from-white to-background">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl md:text-5xl font-bold text-dark-blue mb-4">Coverage Area</h2>
+          <p class="text-lg text-muted-blue max-w-3xl mx-auto">
+            Serving all 11 municipalities across Davao de Oro Province, Philippines
+          </p>
+        </div>
+        
+        <Card class="bg-white">
+          <template #content>
+            <div class="p-6">
+              <!-- Map Container -->
+              <div id="landing-map" class="w-full h-96 rounded-lg border border-light-blue shadow-lg"></div>
+              
+              <!-- Map Legend (DYNAMIC - Shows risk distribution) -->
+              <div class="mt-4 flex flex-wrap gap-4 justify-center">
+                <div class="flex items-center space-x-2">
+                  <div class="w-4 h-4 rounded-full bg-risk-safe"></div>
+                  <span class="text-sm text-muted-blue">Safe ({{ safeCount }})</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="w-4 h-4 rounded-full bg-risk-low"></div>
+                  <span class="text-sm text-muted-blue">Low Risk ({{ lowRiskCount }})</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="w-4 h-4 rounded-full bg-risk-moderate"></div>
+                  <span class="text-sm text-muted-blue">Moderate ({{ moderateRiskCount }})</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="w-4 h-4 rounded-full bg-risk-high"></div>
+                  <span class="text-sm text-muted-blue">High Risk ({{ highRiskCount }})</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="w-4 h-4 rounded-full bg-risk-critical"></div>
+                  <span class="text-sm text-muted-blue">Critical ({{ criticalRiskCount }})</span>
+                </div>
+              </div>
+              
+              <!-- Municipality List -->
+              <div class="mt-8">
+                <h3 class="text-xl font-semibold text-dark-blue mb-4 text-center">11 Municipalities</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <div 
+                    v-for="municipality in municipalities" 
+                    :key="municipality.name"
+                    class="flex items-center space-x-2 p-3 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg hover:from-primary/10 hover:to-primary/15 transition-all cursor-pointer border border-primary/20"
+                  >
+                    <i class="pi pi-map-marker text-primary text-sm"></i>
+                    <span class="text-sm font-medium text-dark-blue">{{ municipality.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </Card>
       </div>
     </section>
 
@@ -102,14 +162,16 @@
           <div>
             <h3 class="text-3xl font-semibold text-dark-blue mb-6">Project Description</h3>
             <p class="text-muted-blue mb-6 leading-relaxed text-lg">
-              This web-based research prototype demonstrates an innovative approach to rabies transmission 
-              modeling and vaccination optimization. The system simulates rabies spread across municipalities 
-              in Davao de Oro and provides adaptive vaccination recommendations using a rule-based decision engine.
+              PAWPATROL implements a fractional-order stochastic transmission model for rabies outbreak 
+              prediction across the 11 municipalities of Davao de Oro, Philippines. The system combines 
+              advanced mathematical modeling with Deep Reinforcement Learning (Deep Q-Network) to provide 
+              AI-powered vaccination recommendations.
             </p>
             <p class="text-muted-blue leading-relaxed text-lg mb-8">
-              Built as a frontend-only academic demonstration tool, PAWPATROL showcases the proposed 
-              research framework through interactive visualizations, real-time simulations, and 
-              intelligent vaccination decision support.
+              The fractional-order approach captures long-term memory effects in disease transmission, 
+              while stochastic components model environmental uncertainty. A trained Deep Q-Network provides 
+              adaptive vaccination strategies by learning optimal resource allocation patterns from 100,000+ 
+              simulated outbreak scenarios.
             </p>
             
             <!-- Key Statistics -->
@@ -133,8 +195,8 @@
                   <i class="pi pi-check text-white"></i>
                 </div>
                 <div>
-                  <div class="font-semibold text-dark-blue">Interactive Transmission Simulation</div>
-                  <div class="text-sm text-muted-blue">Real-time disease spread modeling</div>
+                  <div class="font-semibold text-dark-blue">Fractional-Order Stochastic Model</div>
+                  <div class="text-sm text-muted-blue">Memory effects & environmental uncertainty</div>
                 </div>
               </li>
               <li class="flex items-start space-x-4">
@@ -142,8 +204,8 @@
                   <i class="pi pi-check text-white"></i>
                 </div>
                 <div>
-                  <div class="font-semibold text-dark-blue">Municipality Mapping</div>
-                  <div class="text-sm text-muted-blue">Geographic visualization with Leaflet.js</div>
+                  <div class="font-semibold text-dark-blue">Deep Q-Network (DQN)</div>
+                  <div class="text-sm text-muted-blue">AI-powered vaccination optimization</div>
                 </div>
               </li>
               <li class="flex items-start space-x-4">
@@ -151,8 +213,8 @@
                   <i class="pi pi-check text-white"></i>
                 </div>
                 <div>
-                  <div class="font-semibold text-dark-blue">Adaptive Vaccination Module</div>
-                  <div class="text-sm text-muted-blue">10+ intelligent decision rules</div>
+                  <div class="font-semibold text-dark-blue">Multi-Species Transmission</div>
+                  <div class="text-sm text-muted-blue">Dogs, cats, and humans modeling</div>
                 </div>
               </li>
               <li class="flex items-start space-x-4">
@@ -160,8 +222,8 @@
                   <i class="pi pi-check text-white"></i>
                 </div>
                 <div>
-                  <div class="font-semibold text-dark-blue">Data Visualization</div>
-                  <div class="text-sm text-muted-blue">Comprehensive charts and analytics</div>
+                  <div class="font-semibold text-dark-blue">Interactive Risk Maps</div>
+                  <div class="text-sm text-muted-blue">Real-time geographic visualization</div>
                 </div>
               </li>
               <li class="flex items-start space-x-4">
@@ -169,8 +231,8 @@
                   <i class="pi pi-check text-white"></i>
                 </div>
                 <div>
-                  <div class="font-semibold text-dark-blue">Rule-Based Engine</div>
-                  <div class="text-sm text-muted-blue">Context-aware decision making</div>
+                  <div class="font-semibold text-dark-blue">Spatial Network Modeling</div>
+                  <div class="text-sm text-muted-blue">Inter-municipality transmission tracking</div>
                 </div>
               </li>
             </ul>
@@ -301,15 +363,6 @@
             </p>
           </div>
           <div>
-            <h4 class="font-semibold text-white mb-4">Quick Links</h4>
-            <ul class="space-y-2">
-              <li><a href="#" class="text-light-blue hover:text-white">Dashboard</a></li>
-              <li><a href="#" class="text-light-blue hover:text-white">Simulation</a></li>
-              <li><a href="#" class="text-light-blue hover:text-white">Results</a></li>
-              <li><a href="#" class="text-light-blue hover:text-white">About</a></li>
-            </ul>
-          </div>
-          <div>
             <h4 class="font-semibold text-white mb-4">Disclaimer</h4>
             <p class="text-light-blue text-sm">
               This is a research prototype for academic purposes only. 
@@ -318,7 +371,7 @@
           </div>
         </div>
         <div class="border-t border-muted-blue mt-8 pt-8 text-center">
-          <p class="text-light-blue">&copy; 2024 PAWPATROL Research Prototype. All rights reserved.</p>
+          <p class="text-light-blue">&copy; 2026 PAWPATROL Research Prototype. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -326,20 +379,38 @@
 </template>
 
 <script setup>
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAppStore } from '@/stores'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const router = useRouter()
+const appStore = useAppStore()
+
+// Map reference
+let map = null
 
 const technologies = [
-  { name: 'Vue 3', icon: 'pi pi-code', description: 'Progressive Framework' },
+  { name: 'FastAPI', icon: 'pi pi-server', description: 'Python Backend' },
+  { name: 'Vue 3', icon: 'pi pi-code', description: 'Frontend Framework' },
+  { name: 'Stable-Baselines3', icon: 'pi pi-brain', description: 'DRL (DQN)' },
+  { name: 'NumPy/SciPy', icon: 'pi pi-calculator', description: 'Math Computing' },
   { name: 'Leaflet.js', icon: 'pi pi-map', description: 'Interactive Maps' },
   { name: 'Chart.js', icon: 'pi pi-chart-bar', description: 'Data Visualization' },
-  { name: 'PrimeVue', icon: 'pi pi-palette', description: 'UI Components' },
-  { name: 'Tailwind CSS', icon: 'pi pi-brush', description: 'Styling Framework' },
-  { name: 'Pinia', icon: 'pi pi-database', description: 'State Management' },
-  { name: 'Vite', icon: 'pi pi-bolt', description: 'Build Tool' },
-  { name: 'Local Storage', icon: 'pi pi-save', description: 'Data Persistence' }
+  { name: 'Fractional Calculus', icon: 'pi pi-sitemap', description: 'Memory Effects' },
+  { name: 'Wiener Process', icon: 'pi pi-random', description: 'Stochastic Model' }
 ]
+
+// Get municipalities from store (with dynamic risk data)
+const municipalities = computed(() => appStore.municipalities)
+
+// Risk level counts for legend
+const safeCount = computed(() => municipalities.value.filter(m => (m.riskLevel || 'safe') === 'safe').length)
+const lowRiskCount = computed(() => municipalities.value.filter(m => m.riskLevel === 'low').length)
+const moderateRiskCount = computed(() => municipalities.value.filter(m => m.riskLevel === 'moderate').length)
+const highRiskCount = computed(() => municipalities.value.filter(m => m.riskLevel === 'high').length)
+const criticalRiskCount = computed(() => municipalities.value.filter(m => m.riskLevel === 'critical').length)
 
 const navigateToDashboard = () => {
   router.push('/login')
@@ -348,9 +419,111 @@ const navigateToDashboard = () => {
 const scrollToAbout = () => {
   document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })
 }
+
+const scrollToMap = () => {
+  document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+// Get risk color based on level
+const getRiskColor = (riskLevel) => {
+  const colors = {
+    safe: '#10b981',      // Green
+    low: '#fbbf24',       // Yellow
+    moderate: '#f97316',  // Orange
+    high: '#ef4444',      // Red
+    critical: '#7f1d1d'   // Dark Red
+  }
+  return colors[riskLevel] || colors.safe
+}
+
+// Get risk label
+const getRiskLabel = (riskLevel) => {
+  const labels = {
+    safe: 'Safe',
+    low: 'Low Risk',
+    moderate: 'Moderate',
+    high: 'High Risk',
+    critical: 'Critical'
+  }
+  return labels[riskLevel] || 'Safe'
+}
+
+// Initialize the Davao de Oro map with risk data
+const initializeMap = () => {
+  if (municipalities.value.length === 0) return
+
+  // Create map centered on Davao de Oro (zoom disabled - fixed view)
+  map = L.map('landing-map', {
+    center: [7.5, 125.9],
+    zoom: 9,
+    zoomControl: false,      // Remove zoom buttons
+    scrollWheelZoom: false,  // Disable scroll wheel zoom
+    doubleClickZoom: false,  // Disable double-click zoom
+    touchZoom: false,        // Disable touch zoom
+    dragging: false,         // Disable map dragging
+    boxZoom: false,          // Disable box zoom
+    keyboard: false          // Disable keyboard navigation
+  })
+  
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map)
+
+  // Store original center for recentering
+  const originalCenter = [7.5, 125.9]
+  const originalZoom = 9
+
+  // Add municipality markers with DYNAMIC risk-based colors
+  municipalities.value.forEach(municipality => {
+    const riskColor = getRiskColor(municipality.riskLevel || 'safe')
+    
+    const marker = L.circleMarker([municipality.latitude, municipality.longitude], {
+      radius: 10,
+      fillColor: riskColor,
+      color: '#fff',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.8
+    })
+
+    // Add detailed popup with DYNAMIC data (same as dashboard)
+    const popup = L.popup().setContent(`
+      <div class="text-sm">
+        <h4 class="font-semibold text-dark-blue mb-2">${municipality.name}</h4>
+        <p class="text-muted-blue">Risk Level: <span class="font-medium">${getRiskLabel(municipality.riskLevel || 'safe')}</span></p>
+        <p class="text-muted-blue">Infected: ${municipality.infectedDogs || 0} dogs</p>
+        <p class="text-muted-blue">Vaccinated: ${municipality.vaccinatedDogs || 0} dogs</p>
+        <p class="text-muted-blue mt-1 text-xs">Last updated: ${municipality.lastUpdated ? new Date(municipality.lastUpdated).toLocaleDateString() : 'N/A'}</p>
+      </div>
+    `)
+
+    marker.bindPopup(popup)
+
+    // Auto-recenter when popup closes
+    popup.on('remove', () => {
+      setTimeout(() => {
+        map.setView(originalCenter, originalZoom, { animate: true })
+      }, 100)
+    })
+
+    marker.addTo(map)
+  })
+}
+
+onMounted(() => {
+  // Initialize map after component is mounted
+  setTimeout(() => {
+    initializeMap()
+  }, 300)
+})
 </script>
 
 <style scoped>
+#landing-map {
+  z-index: 1;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

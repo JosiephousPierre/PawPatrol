@@ -44,12 +44,6 @@ const router = createRouter({
           meta: { requiresAuth: true }
         },
         {
-          path: '/predictive-analysis',
-          name: 'predictive-analysis',
-          component: () => import('@/pages/PredictiveAnalysisPage.vue'),
-          meta: { requiresAuth: true }
-        },
-        {
           path: '/cost-estimation',
           name: 'cost-estimation',
           component: () => import('@/pages/CostEstimationPage.vue'),

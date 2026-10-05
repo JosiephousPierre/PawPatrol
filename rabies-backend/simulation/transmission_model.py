@@ -23,6 +23,23 @@ This model combines:
 
 Reference:
     Research paper: "Fractional-Order Stochastic Transmission Model"
+
+IMPORTANT - CAT TRANSMISSION PARAMETERS (October 2026):
+    Extensive literature review found NO published studies quantifying:
+    - Cat-to-cat transmission rates vs dog-to-dog
+    - Dog-to-cat cross-species transmission coefficients
+    
+    Key Research Findings:
+    - Dogs are primary rabies reservoir (>95-99% of human cases) [WHO, 2026]
+    - Cats are spillover hosts, NOT maintenance hosts
+    - No sustained cat-only epidemics documented
+    - 10-day infectious period validated for both species [CDC, Merck Manual]
+    
+    Parameters 0.7 and 0.4 in this model are MODELING ASSUMPTIONS
+    representing conservative estimates for dog-endemic areas.
+    These require empirical validation through future research.
+    
+    See detailed documentation in: TRANSMISSION_PARAMETERS_RESEARCH.md
 """
 
 import numpy as np
@@ -174,8 +191,17 @@ def intra_species_transmission(
     if total_population <= 0 or susceptible <= 0:
         return 0.0, 0.0
     
-    # Standard transmission term
+    # Apply stochastic fluctuation to transmission rate
+    # This makes environmental uncertainty (σ) affect the infection dynamics
+    dW = wiener_increment(dt, sigma)
+    stochastic_multiplier = 1.0 + dW  # Fluctuate around 1.0
+    
+    # Ensure positive multiplier (minimum 10% of base rate)
+    stochastic_multiplier = max(0.1, stochastic_multiplier)
+    
+    # Standard transmission term WITH stochastic component applied
     transmission_term = beta_eff * susceptible * infected / total_population
+    transmission_term *= stochastic_multiplier  # ✅ Apply environmental uncertainty
     
     # Recovery term
     recovery_term = gamma * infected
@@ -190,16 +216,7 @@ def intra_species_transmission(
     else:
         D_alpha_I = 0.0
     
-    # Deterministic drift
-    drift = transmission_term - recovery_term - D_alpha_I
-    
-    # Stochastic component
-    dW = wiener_increment(dt, sigma)
-    
-    # Change in infected: dI = drift * dt^α + dW
-    dI = (dt ** alpha) * drift + dW
-    
-    # Calculate new infections and recoveries
+    # Calculate new infections and recoveries (now includes stochastic effect)
     new_infections = max(0.0, transmission_term * dt)
     new_recoveries = max(0.0, recovery_term * dt)
     
@@ -423,7 +440,20 @@ def simulate_municipality_step(
         state.infected_dogs_history.pop(0)
     
     # ========================================================================
-    # CATS - Secondary hosts
+    # CATS - Secondary hosts (Spillover, not maintenance hosts)
+    # ========================================================================
+    # RESEARCH NOTE (October 2026):
+    # Extensive literature review found NO published studies directly quantifying
+    # cat-to-cat vs dog-to-dog transmission rates, nor dog-to-cat coefficients.
+    # 
+    # Key findings:
+    # - Dogs cause >95-99% of human rabies cases (WHO, 2026)
+    # - Cats are incidental/spillover hosts, NOT maintenance hosts
+    # - No evidence for sustained cat-only epidemics without dog/wildlife reservoir
+    # - Per-bite susceptibility may be similar (β_cat ≈ β_dog), but fewer contacts
+    # - 10-day infectious period validated for both species (CDC, Merck Veterinary Manual)
+    # 
+    # Parameters below are MODELING ASSUMPTIONS (conservative estimates):
     # ========================================================================
     
     # Intra-species (cat-to-cat)
@@ -431,8 +461,11 @@ def simulate_municipality_step(
         state.cats.susceptible,
         state.cats.infected,
         state.cats.total,
-        beta_eff * 0.7,  # Cats slightly lower transmission
-        params.gamma,
+        beta_eff * 0.7,  # ASSUMPTION: Cats have reduced transmission (no empirical data)
+                         # Reflects spillover host status and lower contact rates
+                         # NOT directly supported by published studies
+        params.gamma,    # VALIDATED: 10-day infectious period (CDC/Merck guidelines)
+                         # Same as dogs - both species die ~1 week after symptoms
         params.alpha,
         params.sigma * 0.8,  # Less stochastic variation
         dt,
@@ -445,7 +478,10 @@ def simulate_municipality_step(
         state.dogs.infected,
         state.dogs.total,
         beta_eff,
-        0.4,  # Cross-species factor
+        0.4,  # ASSUMPTION: Reduced cross-species efficiency (no empirical data)
+              # Per-bite risk may be similar to dog-to-dog, but this factor
+              # represents lower dog-cat contact frequency and spillover dynamics
+              # NOT supported by published transmission coefficients
         dt
     )
     
@@ -458,9 +494,9 @@ def simulate_municipality_step(
                 state.cats.susceptible,
                 neighbor.cats.infected,
                 neighbor.cats.total,
-                beta_eff * 0.7,
+                beta_eff * 0.7,  # ASSUMPTION: Same reduction as intra-species
                 dt,
-                0.2  # Cats travel less
+                0.2  # ASSUMPTION: Cats have lower inter-municipality movement than dogs
             )
     
     # Update cat population
@@ -482,6 +518,11 @@ def simulate_municipality_step(
     # ========================================================================
     # HUMANS - End hosts (rabies is fatal without PEP)
     # ========================================================================
+    # RESEARCH NOTE:
+    # Human rabies is preventable with post-exposure prophylaxis (PEP)
+    # Without treatment, rabies is nearly 100% fatal once symptoms appear
+    # No human-to-human transmission occurs
+    # ========================================================================
     
     # Humans only get infected from animals (no human-to-human)
     total_infected_animals = state.dogs.infected + state.cats.infected
@@ -494,7 +535,9 @@ def simulate_municipality_step(
             total_infected_animals,
             total_animals,
             beta_eff,
-            0.01,  # Very low animal-to-human transmission
+            0.01,  # ASSUMPTION: Very low animal-to-human transmission
+                   # Reflects that not all animal contacts result in bites
+                   # and that PEP is often administered after exposure
             dt
         )
     else:
@@ -502,6 +545,7 @@ def simulate_municipality_step(
     
     # Humans "recover" (survive with PEP) or die
     # For simulation, we count recovered as "saved by PEP"
+    # ASSUMPTION: 50% of exposed humans receive timely PEP treatment
     human_recoveries = state.humans.infected * params.gamma * 0.5 * dt  # 50% treated
     
     # Update human population

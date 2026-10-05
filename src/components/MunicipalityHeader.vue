@@ -17,34 +17,6 @@
             </p>
           </div>
         </div>
-
-        <!-- Actions -->
-        <div class="flex items-center space-x-3">
-          <!-- Data Sync Status -->
-          <div class="flex items-center space-x-2 px-3 py-1 bg-green-50 rounded-lg">
-            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span class="text-xs text-green-700 font-medium">Data Synced</span>
-          </div>
-
-          <!-- Municipality Menu -->
-          <Dropdown v-if="isAdmin" v-model="selectedMunicipality" :options="allMunicipalities" 
-                   optionLabel="name" optionValue="id" placeholder="Switch Municipality"
-                   class="w-48" @change="switchMunicipality" />
-
-          <!-- User Menu -->
-          <Menu ref="userMenu" :model="userMenuItems" :popup="true">
-            <template #item="{ item }">
-              <div class="flex items-center space-x-2 px-3 py-2 hover:bg-background rounded cursor-pointer"
-                   @click="item.command">
-                <i :class="item.icon" class="text-muted-blue"></i>
-                <span class="text-dark-blue">{{ item.label }}</span>
-              </div>
-            </template>
-          </Menu>
-
-          <Button icon="pi pi-user" severity="secondary" outlined size="small" 
-                  @click="toggleUserMenu" aria-label="User Menu" />
-        </div>
       </div>
     </div>
   </div>

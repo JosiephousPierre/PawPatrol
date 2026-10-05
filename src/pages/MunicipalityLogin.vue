@@ -31,7 +31,7 @@
                 </label>
                 <InputText
                   v-model="accessCode"
-                  placeholder="e.g., MACO-2024"
+                  placeholder="e.g., MACO"
                   class="w-full uppercase"
                   :class="{ 'p-invalid': error }"
                   @input="error = null"
@@ -67,21 +67,6 @@
                 :disabled="!accessCode?.trim()"
               />
             </form>
-
-            <!-- Help Section -->
-            <div class="mt-6 pt-6 border-t border-background">
-              <h3 class="text-sm font-medium text-dark-blue mb-2">Need Help?</h3>
-              <div class="space-y-2 text-sm text-muted-blue">
-                <div class="flex items-center">
-                  <i class="pi pi-phone w-4 h-4 mr-2"></i>
-                  <span>Regional Health Office: (082) XXX-XXXX</span>
-                </div>
-                <div class="flex items-center">
-                  <i class="pi pi-envelope w-4 h-4 mr-2"></i>
-                  <span>Email: health@davaodeoro.gov.ph</span>
-                </div>
-              </div>
-            </div>
 
             <!-- Municipality List -->
             <div class="mt-6 pt-6 border-t border-background">

@@ -182,10 +182,23 @@ async def run_simulation(request: SimulationRequest):
             )
         
         # Run simulation
+        print(f"🔍 Starting simulation with {len(request.municipalities)} municipalities")
+        if request.municipalities:
+            first_mun = request.municipalities[0]
+            print(f"   First municipality: {first_mun.name}")
+            print(f"   INPUT infectedCats: {first_mun.infectedCats}")
+            print(f"   INPUT infectedDogs: {first_mun.infectedDogs}")
+        
         simulation_results = run_fractional_stochastic_simulation(
             municipalities=request.municipalities,
             settings=request.settings
         )
+        
+        print(f"🔍 Simulation completed, returned {len(simulation_results)} results")
+        if simulation_results:
+            first_result = simulation_results[0]
+            print(f"   OUTPUT predictedInfectedCats: {first_result.get('predictedInfectedCats', 'MISSING')}")
+            print(f"   OUTPUT predictedInfectedDogs: {first_result.get('predictedInfectedDogs', 'MISSING')}")
         
         # Calculate risk scores using paper's formula: R_i = I^_i(T) / N_i
         risk_scores = calculate_risk_scores(simulation_results)
@@ -219,6 +232,14 @@ async def run_simulation(request: SimulationRequest):
                 "formula": "R_i = I^_i(T) / N_i"
             }
         )
+        
+        # Debug: Log first municipality predictions
+        if simulation_results:
+            first = simulation_results[0]
+            print(f"📊 Simulation response for {first.get('name', 'Unknown')}:")
+            print(f"   predictedInfectedDogs: {first.get('predictedInfectedDogs', 'MISSING')}")
+            print(f"   predictedInfectedCats: {first.get('predictedInfectedCats', 'MISSING')}")
+            print(f"   predictedInfectedHumans: {first.get('predictedInfectedHumans', 'MISSING')}")
         
         return response
         

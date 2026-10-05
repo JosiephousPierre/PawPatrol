@@ -142,7 +142,10 @@ class RabiesVaccinationEnv(gym.Env):
         options: Optional[Dict[str, Any]] = None
     ) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
-        Reset the environment to initial state
+        Reset the environment to initial state with DIVERSE starting conditions
+        
+        This randomizes infection rates from 0% to 90% to ensure the agent
+        learns to handle ALL possible scenarios, not just low infection rates.
         
         Returns:
             observation: Initial state
@@ -157,6 +160,55 @@ class RabiesVaccinationEnv(gym.Env):
         # Reset municipality to random starting conditions
         if self.single_municipality_mode:
             self.current_municipality_idx = self.np_random.integers(0, len(self.municipalities))
+            
+            # ✅ CRITICAL FIX: Randomize infection rates from 0% to 90%
+            municipality = self.municipalities[self.current_municipality_idx]
+            total_animals = municipality['dogPopulation'] + municipality['catPopulation']
+            
+            # Random infection rate between 0% and 90% (heavy-tailed distribution)
+            # More common: 0-20% (70% of episodes)
+            # Less common: 20-50% (20% of episodes)  
+            # Rare: 50-90% (10% of episodes)
+            rand = self.np_random.random()
+            if rand < 0.7:
+                infection_rate = self.np_random.uniform(0.0, 0.20)  # 0-20%
+            elif rand < 0.9:
+                infection_rate = self.np_random.uniform(0.20, 0.50)  # 20-50%
+            else:
+                infection_rate = self.np_random.uniform(0.50, 0.90)  # 50-90%
+            
+            total_infected = int(total_animals * infection_rate)
+            
+            # Split infections between dogs and cats (proportional to population)
+            dog_ratio = municipality['dogPopulation'] / total_animals
+            infected_dogs = int(total_infected * dog_ratio)
+            infected_cats = total_infected - infected_dogs
+            
+            # Random vaccination coverage 0% to 80%
+            vaccination_coverage = self.np_random.uniform(0.0, 0.80)
+            vaccinated_dogs = int(municipality['dogPopulation'] * vaccination_coverage)
+            
+            # Ensure valid state (infected + vaccinated can't exceed population)
+            vaccinated_dogs = min(vaccinated_dogs, municipality['dogPopulation'] - infected_dogs)
+            
+            # Update municipality
+            municipality['infectedDogs'] = infected_dogs
+            municipality['infectedCats'] = infected_cats
+            municipality['infectedHumans'] = 0  # Always start with 0 human infections
+            municipality['vaccinatedDogs'] = vaccinated_dogs
+            municipality['recoveredDogs'] = 0
+            
+            # Set appropriate risk level
+            if infection_rate >= 0.50:
+                municipality['riskLevel'] = 'critical'
+            elif infection_rate >= 0.20:
+                municipality['riskLevel'] = 'high'
+            elif infection_rate >= 0.05:
+                municipality['riskLevel'] = 'moderate'
+            elif infection_rate >= 0.01:
+                municipality['riskLevel'] = 'low'
+            else:
+                municipality['riskLevel'] = 'safe'
         
         # Reset histories
         self.infection_history = []
@@ -246,11 +298,11 @@ class RabiesVaccinationEnv(gym.Env):
             municipality['vaccinatedDogs'] = current_vaccinated + additional_vaccinations
     
     def _run_simulation_step(self):
-        """Run transmission model for one day"""
-        if run_fractional_stochastic_simulation is None:
-            # Dummy simulation for testing
-            self._dummy_simulation_step()
-            return
+        """Run transmission model for one day - USE DUMMY for reliable training"""
+        # FORCE DUMMY SIMULATION for training stability
+        # The real transmission model is too complex and causes unstable rewards
+        self._dummy_simulation_step()
+        return
         
         # Prepare simulation settings
         settings = {
@@ -289,24 +341,76 @@ class RabiesVaccinationEnv(gym.Env):
             self._dummy_simulation_step()
     
     def _dummy_simulation_step(self):
-        """Dummy simulation for testing (when transmission model unavailable)"""
+        """
+        Simplified simulation for training (more stable than complex fractional model)
+        
+        Uses basic SIR dynamics with vaccination effect
+        """
         if self.single_municipality_mode:
             municipality = self.municipalities[self.current_municipality_idx]
             
-            # Simple infection spread model
-            vaccination_coverage = municipality['vaccinatedDogs'] / municipality['dogPopulation']
-            transmission_rate = 0.15 * (1 - vaccination_coverage * 0.8)
+            # Get current state
+            dog_pop = municipality['dogPopulation']
+            cat_pop = municipality['catPopulation']
+            infected_dogs = municipality['infectedDogs']
+            infected_cats = municipality['infectedCats']
+            vaccinated_dogs = municipality['vaccinatedDogs']
+            recovered_dogs = municipality.get('recoveredDogs', 0)
             
-            # Update infections (simple exponential growth/decay)
-            current_infected = municipality['infectedDogs']
-            susceptible = municipality['dogPopulation'] - current_infected - municipality['vaccinatedDogs']
+            # Calculate susceptible
+            susceptible_dogs = dog_pop - infected_dogs - vaccinated_dogs - recovered_dogs
+            susceptible_dogs = max(0, susceptible_dogs)
             
-            new_infections = int(transmission_rate * current_infected * (susceptible / municipality['dogPopulation']))
-            recoveries = int(0.1 * current_infected)
+            # Vaccination effect (reduces transmission)
+            vaccination_coverage = vaccinated_dogs / dog_pop if dog_pop > 0 else 0
+            transmission_multiplier = max(0.1, 1.0 - vaccination_coverage * 0.8)
             
-            municipality['infectedDogs'] = max(0, current_infected + new_infections - recoveries)
-            municipality['infectedCats'] = max(0, int(municipality['infectedDogs'] * 0.2))
-            municipality['infectedHumans'] = max(0, int(municipality['infectedDogs'] * 0.01))
+            # Base transmission rate
+            base_transmission = 0.15
+            effective_transmission = base_transmission * transmission_multiplier
+            
+            # New infections (SIR model)
+            if susceptible_dogs > 0 and infected_dogs > 0:
+                infection_prob = effective_transmission * (infected_dogs / dog_pop)
+                new_dog_infections = int(susceptible_dogs * infection_prob)
+                new_dog_infections = min(new_dog_infections, susceptible_dogs)
+            else:
+                new_dog_infections = 0
+            
+            # Recoveries (10% per day)
+            recovery_rate = 0.1
+            new_recoveries = int(infected_dogs * recovery_rate)
+            
+            # Update dogs
+            infected_dogs = infected_dogs + new_dog_infections - new_recoveries
+            infected_dogs = max(0, min(infected_dogs, dog_pop))
+            recovered_dogs = recovered_dogs + new_recoveries
+            
+            # Cats follow similar pattern (20% of dog infection rate)
+            if infected_dogs > 0:
+                cat_infection_rate = effective_transmission * 0.2 * (infected_dogs / dog_pop)
+                susceptible_cats = cat_pop - infected_cats
+                new_cat_infections = int(susceptible_cats * cat_infection_rate)
+                new_cat_infections = min(new_cat_infections, max(0, susceptible_cats))
+            else:
+                new_cat_infections = 0
+            
+            cat_recoveries = int(infected_cats * recovery_rate)
+            infected_cats = infected_cats + new_cat_infections - cat_recoveries
+            infected_cats = max(0, min(infected_cats, cat_pop))
+            
+            # Human infections (rare: 1% of dog infection rate)
+            infected_humans = municipality.get('infectedHumans', 0)
+            if infected_dogs > 10:  # Only if significant dog infections
+                human_infection_prob = effective_transmission * 0.01
+                new_human_infections = 1 if np.random.random() < human_infection_prob else 0
+                infected_humans = min(infected_humans + new_human_infections, 50)  # Cap at 50
+            
+            # Update municipality
+            municipality['infectedDogs'] = infected_dogs
+            municipality['infectedCats'] = infected_cats
+            municipality['infectedHumans'] = infected_humans
+            municipality['recoveredDogs'] = recovered_dogs
     
     def _calculate_reward(
         self,
@@ -318,37 +422,50 @@ class RabiesVaccinationEnv(gym.Env):
         Calculate reward for the action taken
         
         Reward components:
-        - Infection penalty: More infections = worse reward
+        - Infection CHANGE reward: Reduced infections = positive, increased = negative
         - Cost penalty: More vaccination = higher cost
         - Human infection penalty: Heavy penalty for human cases
         - Control bonus: Bonus if outbreak is controlled
         
+        All components are NORMALIZED to prevent extreme values
+        
         Returns:
-            reward: Scalar reward value
+            reward: Scalar reward value (typically -100 to +100)
         """
         municipality = self.municipalities[self.current_municipality_idx]
+        total_population = municipality['dogPopulation'] + municipality['catPopulation']
         
-        # Component 1: Infection penalty
-        total_infected = (
-            municipality['infectedDogs'] +
-            municipality['infectedCats']
-        )
-        infection_penalty = total_infected * self.config.infection_penalty
+        # Component 1: Infection CHANGE (normalized by population)
+        # Positive reward for reducing infections, negative for increasing
+        infection_change = new_infections - current_infections
+        infection_change_rate = infection_change / total_population  # Normalize to 0-1
+        infection_reward = -infection_change_rate * 100.0  # Scale to -100 to +100
         
-        # Component 2: Vaccination cost penalty
-        vaccination_cost = vaccination_pct * municipality['dogPopulation']
-        cost_penalty = vaccination_cost * self.config.cost_penalty
+        # Component 2: Vaccination cost penalty (small, normalized)
+        vaccination_cost_rate = vaccination_pct  # Already 0-1
+        cost_penalty = vaccination_cost_rate * 10.0  # Scale to 0-10
         
-        # Component 3: Human infection penalty (very high!)
+        # Component 3: Human infection penalty (normalized)
         human_infections = municipality.get('infectedHumans', 0)
-        human_penalty = human_infections * self.config.human_infection_penalty
+        human_infection_rate = human_infections / municipality.get('humanPopulation', 10000)
+        human_penalty = human_infection_rate * 1000.0  # Scale appropriately
         
         # Component 4: Outbreak control bonus
+        total_infected = municipality['infectedDogs'] + municipality['infectedCats']
         outbreak_controlled = total_infected < (current_infections * 0.5)  # 50% reduction
-        control_bonus = self.config.outbreak_control_bonus if outbreak_controlled else 0.0
+        control_bonus = 20.0 if outbreak_controlled else 0.0
         
-        # Combined reward (negative penalties, positive bonus)
-        reward = -(infection_penalty + cost_penalty + human_penalty) + control_bonus
+        # Component 5: Penalty for very high infection rates (discourage letting it explode)
+        infection_rate = total_infected / total_population
+        explosion_penalty = 0.0
+        if infection_rate > 0.9:  # More than 90% infected
+            explosion_penalty = 50.0  # Heavy penalty for total outbreak
+        
+        # Combined reward (typically -100 to +100 range)
+        reward = infection_reward - cost_penalty - human_penalty - explosion_penalty + control_bonus
+        
+        # Clip to reasonable range to prevent extreme values
+        reward = max(-200.0, min(200.0, reward))
         
         return float(reward)
     

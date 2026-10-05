@@ -33,9 +33,6 @@
 
       <!-- Footer -->
       <div class="p-4 border-t border-muted-blue">
-        <p class="text-xs text-light-blue text-center">
-          Academic Research Tool
-        </p>
       </div>
     </aside>
 
@@ -73,10 +70,36 @@
             <span class="text-primary text-sm font-medium">Simulation Running</span>
           </div>
           
-          <!-- Current Day -->
-          <div class="bg-background px-3 py-2 rounded-lg">
-            <span class="text-muted-blue text-sm">Day</span>
-            <span class="text-dark-blue font-semibold ml-1">{{ appStore.currentSimulationDay }}</span>
+          <!-- Profile Menu -->
+          <div class="relative">
+            <Button
+              icon="pi pi-user"
+              class="w-10 h-10"
+              rounded
+              text
+              @click="toggleProfileMenu"
+              aria-label="User profile"
+            />
+            
+            <!-- Dropdown Menu -->
+            <div
+              v-if="showProfileMenu"
+              class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-light-blue z-50"
+            >
+              <div class="p-4 border-b border-light-blue">
+                <p class="text-xs text-muted-blue mb-1">Logged in as</p>
+                <p class="font-semibold text-dark-blue">{{ currentMunicipalityName }}</p>
+              </div>
+              <div class="p-2">
+                <button
+                  @click="handleLogout"
+                  class="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  <i class="pi pi-sign-out text-red-600"></i>
+                  <span class="text-red-600 font-medium">Logout</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -90,21 +113,55 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores'
+import { useMunicipalityAuth } from '@/services/municipalityAuth'
 import MunicipalityHeader from '@/components/MunicipalityHeader.vue'
 
 const route = useRoute()
+const router = useRouter()
 const appStore = useAppStore()
+const { currentMunicipality, logout } = useMunicipalityAuth()
+
 const sidebarOpen = ref(false)
+const showProfileMenu = ref(false)
+
+const currentMunicipalityName = computed(() => {
+  return currentMunicipality.value?.name || 'Not logged in'
+})
+
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value
+}
+
+const handleLogout = () => {
+  showProfileMenu.value = false
+  logout()
+  router.push('/')  // Go to landing page instead of login
+}
+
+// Close profile menu when clicking outside
+const handleClickOutside = (event) => {
+  const profileMenu = event.target.closest('.relative')
+  if (!profileMenu && showProfileMenu.value) {
+    showProfileMenu.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 const navigationItems = [
   { name: 'Dashboard', path: '/dashboard', icon: 'pi pi-home' },
   { name: 'Municipality Management', path: '/municipalities', icon: 'pi pi-map-marker' },
   { name: 'Simulation', path: '/simulation', icon: 'pi pi-play' },
   { name: 'Results', path: '/results', icon: 'pi pi-chart-line' },
-  { name: 'Predictive Analysis', path: '/predictive-analysis', icon: 'pi pi-chart-bar' },
   { name: 'Cost Estimation', path: '/cost-estimation', icon: 'pi pi-money-bill' },
   { name: 'About', path: '/about', icon: 'pi pi-info-circle' }
 ]
@@ -113,8 +170,7 @@ const pageInfo = {
   '/dashboard': { title: 'Dashboard', description: 'Overview of simulation data and key metrics' },
   '/municipalities': { title: 'Municipality Management', description: 'Manage municipality data and connections' },
   '/simulation': { title: 'Simulation Configuration', description: 'Configure and run transmission simulations' },
-  '/results': { title: 'Results & Analysis', description: 'View simulation results and vaccination recommendations' },
-  '/predictive-analysis': { title: 'Predictive Risk Analysis', description: 'AI-powered future risk forecasting' },
+  '/results': { title: 'Results & Analysis', description: 'View simulation results, predictions, and vaccination recommendations' },
   '/cost-estimation': { title: 'Intervention Cost Estimation', description: 'Budget planning and financial analysis' },
   '/about': { title: 'About', description: 'Research information and framework details' }
 }

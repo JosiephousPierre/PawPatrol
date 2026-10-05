@@ -1,26 +1,5 @@
 <template>
   <div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
-        <h2 class="text-2xl font-bold text-dark-blue">My Municipality Data</h2>
-        <p class="text-muted-blue">Update your municipality's population and rabies case information</p>
-      </div>
-      <div v-if="currentMunicipality" class="flex items-center gap-3">
-        <div class="text-right">
-          <p class="text-sm text-muted-blue">Logged in as</p>
-          <p class="text-lg font-semibold text-primary">{{ currentMunicipality.name }}</p>
-        </div>
-        <Button 
-          label="Logout" 
-          icon="pi pi-sign-out" 
-          severity="secondary"
-          outlined
-          @click="handleLogout"
-        />
-      </div>
-    </div>
-
     <!-- Redirect if not logged in -->
     <Card v-if="!currentMunicipality" class="bg-white">
       <template #content>

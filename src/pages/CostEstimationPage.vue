@@ -1,33 +1,5 @@
 <template>
   <div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
-        <h2 class="text-2xl font-bold text-dark-blue">Intervention Cost Estimation</h2>
-        <p class="text-muted-blue">Comprehensive budget planning for your municipality</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div v-if="currentMunicipality" class="text-right mr-4">
-          <p class="text-sm text-muted-blue">Cost estimation for</p>
-          <p class="text-lg font-semibold text-primary">{{ currentMunicipality.name }}</p>
-        </div>
-        <Dropdown 
-          v-model="selectedTargetCoverage" 
-          :options="targetCoverageOptions"
-          optionLabel="label"
-          optionValue="value"
-          class="w-48"
-          @change="updateBudget"
-        />
-        <Button 
-          label="Export Budget" 
-          icon="pi pi-download" 
-          severity="secondary"
-          @click="exportBudget"
-        />
-      </div>
-    </div>
-
     <!-- No Login Warning -->
     <Card v-if="!currentMunicipality" class="bg-white">
       <template #content>

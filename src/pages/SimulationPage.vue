@@ -1,19 +1,5 @@
 <template>
   <div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
-        <h2 class="text-2xl font-bold text-dark-blue">Rabies Transmission Simulation</h2>
-        <p class="text-muted-blue">Configure and run simulation for your municipality</p>
-      </div>
-      <div v-if="currentMunicipality" class="flex items-center gap-3">
-        <div class="text-right">
-          <p class="text-sm text-muted-blue">Simulating for</p>
-          <p class="text-lg font-semibold text-primary">{{ currentMunicipality.name }}</p>
-        </div>
-      </div>
-    </div>
-
     <!-- Redirect if not logged in -->
     <Card v-if="!currentMunicipality" class="bg-white">
       <template #content>
@@ -30,37 +16,89 @@
       </template>
     </Card>
 
-    <!-- Simulation Status Banner -->
-    <Card v-else-if="isRunning" class="bg-primary/5 border-primary/20">
+    <!-- Animated Simulation Status Banner -->
+    <Card v-else-if="currentMunicipality && isRunning" class="bg-gradient-to-br from-primary/10 via-blue-50 to-primary/5 border-2 border-primary/30 shadow-xl simulation-running-card">
       <template #content>
-        <div class="p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              <div class="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+        <div class="p-6">
+          <!-- Header with Animated Icon -->
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+              <!-- Pulsing Virus Animation -->
+              <div class="relative">
+                <div class="w-16 h-16 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center animate-pulse-scale">
+                  <i class="pi pi-spin pi-spinner text-white text-2xl"></i>
+                </div>
+                <div class="absolute inset-0 w-16 h-16 bg-primary rounded-full opacity-30 animate-ping"></div>
+              </div>
               <div>
-                <h3 class="font-semibold text-primary">Simulation Running for {{ currentMunicipality.name }}</h3>
+                <h3 class="text-xl font-bold text-primary mb-1 flex items-center">
+                  Simulation in Progress
+                  <span class="ml-2 inline-flex items-center px-2 py-1 text-xs bg-primary text-white rounded-full animate-pulse">
+                    LIVE
+                  </span>
+                </h3>
+                <p class="text-dark-blue font-medium">{{ currentMunicipality.name }}</p>
                 <p class="text-muted-blue text-sm">Day {{ currentDay }} of {{ configForm.simulationDays }}</p>
               </div>
             </div>
-            <div class="flex items-center space-x-2">
-              <Button
-                label="Stop"
-                icon="pi pi-stop"
-                size="small"
-                severity="danger"
-                @click="stopSimulation"
-              />
+            <Button
+              label="Stop"
+              icon="pi pi-stop"
+              size="small"
+              severity="danger"
+              outlined
+              @click="stopSimulation"
+              class="hover:scale-105 transition-transform"
+            />
+          </div>
+
+          <!-- Progress Bar with Gradient -->
+          <div class="space-y-3">
+            <div class="relative">
+              <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+                <div 
+                  class="h-4 rounded-full bg-gradient-to-r from-primary via-blue-500 to-primary bg-size-200 animate-gradient transition-all duration-500 ease-out relative"
+                  :style="{ width: `${simulationProgress}%` }"
+                >
+                  <div class="absolute inset-0 bg-white/20 animate-shimmer"></div>
+                </div>
+              </div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-xs font-bold text-dark-blue drop-shadow-sm">
+                  {{ simulationProgress.toFixed(1) }}%
+                </span>
+              </div>
+            </div>
+            
+            <!-- Animated Status Messages -->
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-muted-blue font-medium">{{ currentSimulationStatus }}</span>
+              <span class="text-primary font-semibold animate-pulse">{{ estimatedTimeRemaining }}</span>
             </div>
           </div>
-          <div class="mt-3">
-            <ProgressBar 
-              :value="simulationProgress" 
-              class="mb-2"
-              :showValue="false"
-            />
-            <div class="flex justify-between text-sm text-muted-blue">
-              <span>Progress: {{ simulationProgress.toFixed(1) }}%</span>
-              <span>Analyzing transmission patterns...</span>
+
+          <!-- Live Activity Cards -->
+          <div class="grid grid-cols-3 gap-3 mt-6">
+            <div class="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-primary/20 animate-fade-in">
+              <div class="flex items-center space-x-2 mb-1">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-xs text-muted-blue">Transmission Model</span>
+              </div>
+              <p class="text-sm font-bold text-dark-blue">Active</p>
+            </div>
+            <div class="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-primary/20 animate-fade-in animation-delay-200">
+              <div class="flex items-center space-x-2 mb-1">
+                <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span class="text-xs text-muted-blue">Risk Calculation</span>
+              </div>
+              <p class="text-sm font-bold text-dark-blue">Processing</p>
+            </div>
+            <div class="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-primary/20 animate-fade-in animation-delay-400">
+              <div class="flex items-center space-x-2 mb-1">
+                <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                <span class="text-xs text-muted-blue">AI Analysis</span>
+              </div>
+              <p class="text-sm font-bold text-dark-blue">{{ configForm.enableAdaptiveVaccination ? 'Enabled' : 'Disabled' }}</p>
             </div>
           </div>
         </div>
@@ -192,7 +230,9 @@
                 </div>
               </div>
 
-              <!-- Advanced Settings -->
+              <!-- Advanced Settings - HIDDEN (values enabled by default) -->
+              <!-- Keeping checkboxes enabled in background -->
+              <!--
               <div class="border-t border-background pt-6">
                 <h4 class="text-md font-semibold text-dark-blue mb-4">Advanced Settings</h4>
                 <div class="space-y-4">
@@ -221,6 +261,7 @@
                   </div>
                 </div>
               </div>
+              -->
 
               <!-- Action Buttons -->
               <div class="flex justify-between items-center pt-4 border-t border-background">
@@ -393,6 +434,97 @@
         </Card>
       </div>
     </div>
+
+    <!-- Simulation Complete Dialog -->
+    <Dialog 
+      v-model:visible="showCompletionDialog" 
+      modal 
+      :closable="false"
+      :draggable="false"
+      class="simulation-complete-dialog"
+      :style="{ width: '650px', maxWidth: '90vw' }"
+    >
+      <template #header>
+        <div class="flex items-center space-x-4 p-2">
+          <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center animate-bounce-in shadow-lg">
+            <i class="pi pi-check text-white text-3xl"></i>
+          </div>
+          <div>
+            <h3 class="text-2xl font-bold text-dark-blue mb-1">Simulation Complete!</h3>
+            <p class="text-sm text-muted-blue">Analysis ready for review</p>
+          </div>
+        </div>
+      </template>
+      
+      <div class="space-y-8 py-6 px-4">
+        <!-- Success Animation -->
+        <div class="flex justify-center">
+          <div class="relative">
+            <div class="w-40 h-40 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center animate-scale-in shadow-xl">
+              <i class="pi pi-chart-line text-green-600 text-6xl"></i>
+            </div>
+            <div class="absolute inset-0 w-40 h-40 bg-green-400 rounded-full opacity-20 animate-ping-slow"></div>
+          </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="bg-gradient-to-br from-blue-50 to-green-50 rounded-xl p-6 border-2 border-green-200 shadow-md">
+          <h4 class="font-semibold text-dark-blue mb-4 flex items-center text-lg">
+            <i class="pi pi-info-circle text-primary mr-2 text-xl"></i>
+            Simulation Summary
+          </h4>
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <p class="text-muted-blue mb-2 text-sm">Municipality</p>
+              <p class="font-bold text-dark-blue text-lg">{{ currentMunicipality?.name }}</p>
+            </div>
+            <div>
+              <p class="text-muted-blue mb-2 text-sm">Duration</p>
+              <p class="font-bold text-dark-blue text-lg">{{ configForm.simulationDays }} days</p>
+            </div>
+            <div>
+              <p class="text-muted-blue mb-2 text-sm">Model Type</p>
+              <p class="font-bold text-dark-blue">Fractional-Order Stochastic</p>
+            </div>
+            <div>
+              <p class="text-muted-blue mb-2 text-sm">AI Recommendations</p>
+              <p class="font-bold text-lg" :class="configForm.enableAdaptiveVaccination ? 'text-green-600' : 'text-gray-500'">
+                {{ configForm.enableAdaptiveVaccination ? 'Generated' : 'Disabled' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success Message -->
+        <div class="text-center space-y-3 px-4">
+          <p class="text-dark-blue font-semibold text-lg">
+            Your simulation has been completed successfully!
+          </p>
+          <p class="text-muted-blue text-base leading-relaxed">
+            View detailed results including infection predictions, risk maps, and vaccination recommendations.
+          </p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-4 p-4">
+          <Button 
+            label="Stay Here" 
+            severity="secondary" 
+            outlined
+            @click="closeCompletionDialog"
+            class="hover:scale-105 transition-transform px-6 py-3 text-base"
+          />
+          <Button 
+            label="View Results" 
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            @click="navigateToResults"
+            class="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 hover:scale-105 transition-all px-6 py-3 text-base text-white font-semibold shadow-lg"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -428,6 +560,13 @@ const configForm = ref({
 })
 
 const errors = ref({})
+const showCompletionDialog = ref(false)
+const currentSimulationStatus = ref('Initializing simulation...')
+const estimatedTimeRemaining = ref('Calculating...')
+
+// Store interval IDs for cleanup
+let progressInterval = null
+let statusInterval = null
 
 // Speed options
 const speedOptions = [
@@ -543,22 +682,75 @@ const startSimulation = async () => {
       life: 3000
     })
 
-    // Run simulation for ONLY the logged-in municipality
-    await simulationEngine.startSimulation()
+    // Set initial day
+    appStore.setCurrentSimulationDay(0)
 
-    toast.add({
-      severity: 'success',
-      summary: 'Simulation Complete',
-      detail: `${currentMunicipality.value.name} simulation finished successfully`,
-      life: 3000
-    })
+    // Start the simulation engine (this will set isSimulationRunning = true internally)
+    // We start it first, then begin visual progress animation
+    const simulationPromise = simulationEngine.startSimulation()
+    
+    // Give the engine a moment to set isSimulationRunning state
+    await new Promise(resolve => setTimeout(resolve, 50))
+    
+    // Update simulation status messages dynamically
+    updateSimulationStatus()
+    
+    // Simulate progress (since backend doesn't provide real-time updates)
+    const totalDays = configForm.value.simulationDays
+    const updateInterval = 100 // Update every 100ms
+    const totalDuration = 3000 // 3 seconds total animation
+    const steps = totalDuration / updateInterval
+    const daysPerStep = totalDays / steps
+    
+    let currentStep = 0
+    progressInterval = setInterval(() => {
+      currentStep++
+      const newDay = Math.min(Math.floor(currentStep * daysPerStep), totalDays)
+      appStore.setCurrentSimulationDay(newDay)
+      
+      if (currentStep >= steps) {
+        clearInterval(progressInterval)
+        progressInterval = null
+      }
+    }, updateInterval)
 
-    // Auto-navigate to results
-    setTimeout(() => {
-      router.push('/results')
-    }, 1500)
+    // Wait for simulation to complete
+    await simulationPromise
+    
+    // Wait for simulation to complete
+    await simulationPromise
+    
+    // Clean up intervals
+    if (progressInterval) {
+      clearInterval(progressInterval)
+      progressInterval = null
+    }
+    if (statusInterval) {
+      clearInterval(statusInterval)
+      statusInterval = null
+    }
+    
+    // Ensure we reach 100%
+    appStore.setCurrentSimulationDay(totalDays)
+    // Note: isSimulationRunning is set to false by the engine, not here
+
+    // Show completion dialog instead of toast
+    showCompletionDialog.value = true
 
   } catch (error) {
+    // Clean up intervals on error
+    if (progressInterval) {
+      clearInterval(progressInterval)
+      progressInterval = null
+    }
+    if (statusInterval) {
+      clearInterval(statusInterval)
+      statusInterval = null
+    }
+    
+    // Note: isSimulationRunning is set to false by the engine on error, not here
+    appStore.setCurrentSimulationDay(0)
+    
     toast.add({
       severity: 'error',
       summary: 'Simulation Error',
@@ -568,6 +760,58 @@ const startSimulation = async () => {
   } finally {
     starting.value = false
   }
+}
+
+const updateSimulationStatus = () => {
+  const statusMessages = [
+    'Initializing fractional-order model...',
+    'Calculating transmission rates...',
+    'Simulating dog-to-dog transmission...',
+    'Analyzing cat spillover dynamics...',
+    'Computing stochastic components...',
+    'Applying vaccination interventions...',
+    'Processing inter-municipality spread...',
+    'Calculating risk scores...',
+    'Generating AI recommendations...',
+    'Finalizing predictions...'
+  ]
+
+  let currentIndex = 0
+  
+  // Clear any existing status interval
+  if (statusInterval) {
+    clearInterval(statusInterval)
+  }
+  
+  statusInterval = setInterval(() => {
+    if (!appStore.isSimulationRunning) {
+      clearInterval(statusInterval)
+      statusInterval = null
+      currentSimulationStatus.value = 'Completed!'
+      estimatedTimeRemaining.value = 'Done'
+      return
+    }
+
+    currentSimulationStatus.value = statusMessages[currentIndex % statusMessages.length]
+    currentIndex++
+
+    // Update estimated time
+    const progress = simulationProgress.value
+    if (progress > 0 && progress < 100) {
+      const remainingProgress = 100 - progress
+      const estimatedSeconds = Math.ceil((remainingProgress / progress) * 2) // Rough estimate
+      estimatedTimeRemaining.value = `~${estimatedSeconds}s remaining`
+    }
+  }, 800)
+}
+
+const closeCompletionDialog = () => {
+  showCompletionDialog.value = false
+}
+
+const navigateToResults = () => {
+  showCompletionDialog.value = false
+  router.push('/results')
 }
 
 const stopSimulation = () => {
@@ -654,3 +898,223 @@ onMounted(() => {
   }
 })
 </script>
+
+<style scoped>
+/* Simulation Running Card Animation */
+.simulation-running-card {
+  animation: slideInFromTop 0.5s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse Scale Animation for Icon */
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+/* Gradient Background Animation */
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+.bg-size-200 {
+  background-size: 200% 200%;
+}
+
+/* Shimmer Effect */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+/* Bounce In Animation for Completion Dialog */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+/* Scale In Animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out;
+}
+
+/* Slow Ping Animation */
+@keyframes pingSlow {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping-slow {
+  animation: pingSlow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Dialog Backdrop */
+:deep(.p-dialog-mask) {
+  backdrop-filter: blur(5px);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Dialog Animation */
+:deep(.p-dialog) {
+  animation: dialogSlideIn 0.3s ease-out;
+  border-radius: 1rem;
+}
+
+/* Dialog Content Padding */
+:deep(.p-dialog-content) {
+  padding: 0 !important;
+}
+
+:deep(.p-dialog-header) {
+  padding: 1.5rem 2rem !important;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+:deep(.p-dialog-footer) {
+  padding: 0 !important;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Force white text on View Results button */
+:deep(.p-button.text-white),
+:deep(.p-button.text-white .p-button-label),
+:deep(.p-button.text-white .p-button-icon) {
+  color: white !important;
+}
+
+@keyframes dialogSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Custom Progress Bar Styling */
+:deep(.p-progressbar) {
+  border-radius: 1rem;
+  height: 1rem;
+}
+
+:deep(.p-progressbar-value) {
+  border-radius: 1rem;
+}
+
+/* Hover Effects */
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+
+.transition-transform {
+  transition: transform 0.2s ease-in-out;
+}
+
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+</style>

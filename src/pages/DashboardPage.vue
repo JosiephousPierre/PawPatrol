@@ -320,13 +320,27 @@ const navigateTo = (path) => {
 const initializeMap = () => {
   if (appStore.municipalities.length === 0) return
 
-  // Create map centered on Davao de Oro
-  map = L.map('dashboard-map').setView([7.5, 125.9], 9)
+  // Create map centered on Davao de Oro (zoom disabled - fixed view)
+  map = L.map('dashboard-map', {
+    center: [7.5, 125.9],
+    zoom: 9,
+    zoomControl: false,      // Remove zoom buttons
+    scrollWheelZoom: false,  // Disable scroll wheel zoom
+    doubleClickZoom: false,  // Disable double-click zoom
+    touchZoom: false,        // Disable touch zoom
+    dragging: false,         // Disable map dragging
+    boxZoom: false,          // Disable box zoom
+    keyboard: false          // Disable keyboard navigation
+  })
   
   // Add OpenStreetMap tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map)
+
+  // Store original center for recentering
+  const originalCenter = [7.5, 125.9]
+  const originalZoom = 9
 
   // Add municipality markers (DYNAMIC - Based on current data)
   appStore.municipalities.forEach(municipality => {
@@ -343,7 +357,7 @@ const initializeMap = () => {
     })
 
     // Add popup with DYNAMIC data
-    marker.bindPopup(`
+    const popup = L.popup().setContent(`
       <div class="text-sm">
         <h4 class="font-semibold text-dark-blue mb-2">${municipality.name}</h4>
         <p class="text-muted-blue">Risk Level: <span class="font-medium">${municipality.riskLevel}</span></p>
@@ -352,6 +366,15 @@ const initializeMap = () => {
         <p class="text-muted-blue mt-1 text-xs">Last updated: ${municipality.lastUpdated ? new Date(municipality.lastUpdated).toLocaleDateString() : 'N/A'}</p>
       </div>
     `)
+
+    marker.bindPopup(popup)
+
+    // Auto-recenter when popup closes
+    popup.on('remove', () => {
+      setTimeout(() => {
+        map.setView(originalCenter, originalZoom, { animate: true })
+      }, 100)
+    })
 
     marker.addTo(map)
   })

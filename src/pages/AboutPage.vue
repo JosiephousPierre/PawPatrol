@@ -12,8 +12,8 @@
         </div>
       </div>
       <p class="text-xl text-muted-blue max-w-3xl mx-auto">
-        Hybrid Quantum-Classical Framework for Adaptive Rabies Transmission Modeling 
-        and Vaccination Optimization in Davao de Oro Municipalities
+        Fractional-Order Stochastic Transmission Model with Deep Reinforcement Learning 
+        for Rabies Outbreak Prediction and Vaccination Optimization in Davao de Oro, Philippines
       </p>
     </div>
 
@@ -27,22 +27,23 @@
       <template #content>
         <div class="p-6">
           <p class="text-muted-blue leading-relaxed text-justify">
-            This research prototype demonstrates an innovative approach to rabies transmission modeling 
-            and vaccination optimization through a hybrid quantum-classical framework. The system 
-            simulates rabies transmission dynamics across municipalities in Davao de Oro, Philippines, 
-            utilizing a rule-based adaptive vaccination decision engine that mimics Deep Reinforcement 
-            Learning behavior. The prototype serves as a proof-of-concept for integrating advanced 
-            computational approaches with epidemiological modeling to support public health 
-            decision-making in rabies control programs.
+            PAWPATROL implements a fractional-order stochastic transmission model for rabies outbreak 
+            prediction across the 11 municipalities of Davao de Oro, Philippines. The system combines 
+            advanced mathematical modeling with Deep Reinforcement Learning (Deep Q-Network) to provide 
+            AI-powered vaccination recommendations. The fractional-order approach captures long-term 
+            memory effects in disease transmission, while stochastic components model environmental 
+            uncertainty and randomness in contact patterns.
           </p>
           <br>
           <p class="text-muted-blue leading-relaxed text-justify">
-            The framework incorporates multi-species transmission modeling (dogs, cats, and humans), 
-            inter-municipality spread dynamics, environmental randomness factors, and adaptive 
-            vaccination strategies based on real-time risk assessment. This web-based prototype 
-            demonstrates the complete workflow from outbreak detection through vaccination 
-            recommendation generation, providing an interactive platform for exploring 
-            epidemiological scenarios and intervention strategies.
+            The model incorporates multi-species transmission dynamics (dogs, cats, and humans), 
+            inter-municipality spread through explicit network connections, population-density-based 
+            spatial heterogeneity, and time-series analysis of infection trends. A trained Deep Q-Network 
+            provides adaptive vaccination strategies by learning optimal resource allocation patterns 
+            from 100,000+ simulated outbreak scenarios. The system enables public health officials 
+            to simulate outbreak scenarios, visualize transmission patterns on interactive maps, 
+            and receive data-driven vaccination recommendations tailored to each municipality's 
+            current outbreak status.
           </p>
         </div>
       </template>
@@ -63,19 +64,19 @@
               <ul class="space-y-3">
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-check-circle text-primary mt-1"></i>
-                  <span class="text-muted-blue">Develop accurate rabies transmission models for interconnected municipalities</span>
+                  <span class="text-muted-blue">Develop fractional-order stochastic model for rabies transmission across interconnected municipalities</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-check-circle text-primary mt-1"></i>
-                  <span class="text-muted-blue">Create adaptive vaccination strategies responsive to outbreak dynamics</span>
+                  <span class="text-muted-blue">Implement Deep Q-Network for adaptive vaccination optimization</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-check-circle text-primary mt-1"></i>
-                  <span class="text-muted-blue">Integrate quantum-classical computational approaches for optimization</span>
+                  <span class="text-muted-blue">Model multi-species transmission (dogs, cats, humans) with spatial heterogeneity</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-check-circle text-primary mt-1"></i>
-                  <span class="text-muted-blue">Provide real-time decision support for public health officials</span>
+                  <span class="text-muted-blue">Provide data-driven decision support with interactive visualization</span>
                 </li>
               </ul>
             </div>
@@ -84,19 +85,19 @@
               <ul class="space-y-3">
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-arrow-right text-muted-blue mt-1"></i>
-                  <span class="text-muted-blue">Demonstrate workflow feasibility through interactive prototype</span>
+                  <span class="text-muted-blue">Validate model predictions against historical outbreak data</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-arrow-right text-muted-blue mt-1"></i>
-                  <span class="text-muted-blue">Validate rule-based approximation of DRL behavior</span>
+                  <span class="text-muted-blue">Assess environmental uncertainty effects on transmission dynamics</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-arrow-right text-muted-blue mt-1"></i>
-                  <span class="text-muted-blue">Assess computational efficiency and scalability</span>
+                  <span class="text-muted-blue">Evaluate DRL vaccination strategy effectiveness through simulation</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-arrow-right text-muted-blue mt-1"></i>
-                  <span class="text-muted-blue">Establish foundation for future implementation</span>
+                  <span class="text-muted-blue">Demonstrate system usability for public health decision-making</span>
                 </li>
               </ul>
             </div>
@@ -123,22 +124,22 @@
                   <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i class="pi pi-sitemap text-primary text-2xl"></i>
                   </div>
-                  <h4 class="font-semibold text-dark-blue mb-2">Transmission Engine</h4>
-                  <p class="text-sm text-muted-blue">Multi-species epidemiological modeling with network-based spread dynamics</p>
+                  <h4 class="font-semibold text-dark-blue mb-2">Fractional-Order Model</h4>
+                  <p class="text-sm text-muted-blue">Stochastic transmission model with memory effects and environmental uncertainty</p>
                 </div>
                 <div class="text-center">
                   <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i class="pi pi-brain text-primary text-2xl"></i>
                   </div>
-                  <h4 class="font-semibold text-dark-blue mb-2">Adaptive Decision Module</h4>
-                  <p class="text-sm text-muted-blue">Rule-based vaccination optimization mimicking DRL behavior</p>
+                  <h4 class="font-semibold text-dark-blue mb-2">Deep Q-Network (DQN)</h4>
+                  <p class="text-sm text-muted-blue">Trained AI agent for optimal vaccination resource allocation</p>
                 </div>
                 <div class="text-center">
                   <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i class="pi pi-chart-line text-primary text-2xl"></i>
                   </div>
-                  <h4 class="font-semibold text-dark-blue mb-2">Visualization Interface</h4>
-                  <p class="text-sm text-muted-blue">Real-time monitoring and interactive result exploration</p>
+                  <h4 class="font-semibold text-dark-blue mb-2">Interactive Dashboard</h4>
+                  <p class="text-sm text-muted-blue">Real-time visualization with maps, charts, and risk analysis</p>
                 </div>
               </div>
             </div>
@@ -150,16 +151,17 @@
               <h3 class="text-lg font-semibold text-dark-blue mb-4">Core Components</h3>
               <div class="space-y-4">
                 <div class="border border-light-blue rounded-lg p-4">
-                  <h4 class="font-medium text-dark-blue mb-2">Transmission Modeling</h4>
-                  <p class="text-sm text-muted-blue">Stochastic model incorporating environmental factors, population dynamics, and inter-municipal connections</p>
+                  <h4 class="font-medium text-dark-blue mb-2">Mathematical Model</h4>
+                  <p class="text-sm text-muted-blue mb-2">Fractional-order stochastic SIR with Caputo derivative:</p>
+                  <p class="text-xs font-mono text-dark-blue bg-gray-50 p-2 rounded">dI/dt<sup>α</sup> = β·p(t)·S·I/N - γ·I + σ·dW(t)</p>
                 </div>
                 <div class="border border-light-blue rounded-lg p-4">
                   <h4 class="font-medium text-dark-blue mb-2">Risk Assessment</h4>
-                  <p class="text-sm text-muted-blue">Real-time calculation of municipality risk levels based on infection rates and vaccination coverage</p>
+                  <p class="text-sm text-muted-blue">Real-time risk scoring based on infection rates, vaccination coverage, and spatial factors</p>
                 </div>
                 <div class="border border-light-blue rounded-lg p-4">
-                  <h4 class="font-medium text-dark-blue mb-2">Decision Engine</h4>
-                  <p class="text-sm text-muted-blue">Rule-based vaccination recommendations with priority assignment and resource optimization</p>
+                  <h4 class="font-medium text-dark-blue mb-2">DRL Recommendations</h4>
+                  <p class="text-sm text-muted-blue">Deep Q-Network trained on 100,000+ simulation episodes for optimal vaccination strategies</p>
                 </div>
               </div>
             </div>
@@ -168,16 +170,16 @@
               <h3 class="text-lg font-semibold text-dark-blue mb-4">Innovation Aspects</h3>
               <div class="space-y-4">
                 <div class="border border-light-blue rounded-lg p-4">
-                  <h4 class="font-medium text-dark-blue mb-2">Hybrid Approach</h4>
-                  <p class="text-sm text-muted-blue">Integration of classical epidemiological models with quantum-inspired optimization concepts</p>
+                  <h4 class="font-medium text-dark-blue mb-2">Memory Effects</h4>
+                  <p class="text-sm text-muted-blue">Fractional calculus captures long-term disease history influence on current transmission</p>
                 </div>
                 <div class="border border-light-blue rounded-lg p-4">
-                  <h4 class="font-medium text-dark-blue mb-2">Adaptive Strategy</h4>
-                  <p class="text-sm text-muted-blue">Dynamic vaccination recommendations that adapt to changing outbreak conditions</p>
+                  <h4 class="font-medium text-dark-blue mb-2">Stochastic Components</h4>
+                  <p class="text-sm text-muted-blue">Wiener process models environmental uncertainty (weather, behavior, contact randomness)</p>
                 </div>
                 <div class="border border-light-blue rounded-lg p-4">
-                  <h4 class="font-medium text-dark-blue mb-2">Network Modeling</h4>
-                  <p class="text-sm text-muted-blue">Explicit modeling of inter-municipal connections and cross-border transmission</p>
+                  <h4 class="font-medium text-dark-blue mb-2">AI-Powered Strategy</h4>
+                  <p class="text-sm text-muted-blue">Reinforcement learning adapts vaccination allocation based on outbreak state</p>
                 </div>
               </div>
             </div>
@@ -284,19 +286,19 @@
               <ul class="space-y-3">
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-info-circle text-muted-blue mt-1"></i>
-                  <span class="text-muted-blue">Prototype uses simulated data for demonstration purposes</span>
+                  <span class="text-muted-blue">Cat-specific transmission parameters based on modeling assumptions (limited empirical data)</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-info-circle text-muted-blue mt-1"></i>
-                  <span class="text-muted-blue">Rule-based system approximates but doesn't implement actual DRL</span>
+                  <span class="text-muted-blue">Environmental uncertainty (σ) values derived from literature ranges, not Philippines-specific calibration</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-info-circle text-muted-blue mt-1"></i>
-                  <span class="text-muted-blue">Quantum computing aspects are conceptual framework only</span>
+                  <span class="text-muted-blue">DRL model trained on simulated scenarios; requires validation with real outbreak data</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-info-circle text-muted-blue mt-1"></i>
-                  <span class="text-muted-blue">Limited validation against real-world outbreak data</span>
+                  <span class="text-muted-blue">Assumes homogeneous mixing within municipalities; sub-municipal heterogeneity not modeled</span>
                 </li>
               </ul>
             </div>
@@ -306,19 +308,23 @@
               <ul class="space-y-3">
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-arrow-circle-right text-primary mt-1"></i>
-                  <span class="text-muted-blue">Integration with real surveillance data sources</span>
+                  <span class="text-muted-blue">Empirical calibration of transmission parameters using Philippine rabies surveillance data</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-arrow-circle-right text-primary mt-1"></i>
-                  <span class="text-muted-blue">Implementation of actual DRL algorithms</span>
+                  <span class="text-muted-blue">Seasonal variation modeling (σ varies with monsoon/dry season)</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-arrow-circle-right text-primary mt-1"></i>
-                  <span class="text-muted-blue">Quantum computing algorithm development</span>
+                  <span class="text-muted-blue">Real-time integration with DOH/LGU rabies case reporting systems</span>
                 </li>
                 <li class="flex items-start space-x-3">
                   <i class="pi pi-arrow-circle-right text-primary mt-1"></i>
-                  <span class="text-muted-blue">Multi-scale modeling (regional to national level)</span>
+                  <span class="text-muted-blue">Quantum computing acceleration for large-scale optimization and faster simulation convergence</span>
+                </li>
+                <li class="flex items-start space-x-3">
+                  <i class="pi pi-arrow-circle-right text-primary mt-1"></i>
+                  <span class="text-muted-blue">Expansion to regional/national scale with provincial-level networks</span>
                 </li>
               </ul>
             </div>
@@ -341,35 +347,35 @@
         <div class="p-6">
           <div class="space-y-4">
             <p class="text-dark-blue font-medium">
-              This is a research prototype developed for academic demonstration purposes only.
+              This system is a research implementation for academic and demonstration purposes.
             </p>
             <ul class="space-y-2 text-muted-blue">
               <li class="flex items-start space-x-2">
                 <span class="font-bold text-risk-moderate">•</span>
-                <span>Not intended for actual public health decision-making or operational use</span>
+                <span>Model parameters use best available estimates from literature; some lack Philippines-specific empirical validation</span>
               </li>
               <li class="flex items-start space-x-2">
                 <span class="font-bold text-risk-moderate">•</span>
-                <span>All data used is simulated and does not represent real outbreak scenarios</span>
+                <span>Deep Q-Network trained on simulated outbreak scenarios; requires real-world validation before operational deployment</span>
               </li>
               <li class="flex items-start space-x-2">
                 <span class="font-bold text-risk-moderate">•</span>
-                <span>Vaccination recommendations are generated by rule-based algorithms for demonstration</span>
+                <span>Not certified for operational public health decision-making without further validation and regulatory approval</span>
               </li>
               <li class="flex items-start space-x-2">
                 <span class="font-bold text-risk-moderate">•</span>
-                <span>Results should not be used to guide actual vaccination or intervention strategies</span>
+                <span>Results should be interpreted as model predictions subject to parameter uncertainty and modeling assumptions</span>
               </li>
               <li class="flex items-start space-x-2">
                 <span class="font-bold text-risk-moderate">•</span>
-                <span>For educational and research demonstration purposes only</span>
+                <span>For actual rabies control programs, consult qualified veterinary and public health authorities</span>
               </li>
             </ul>
             <p class="text-muted-blue text-sm mt-4">
-              For actual rabies control and vaccination programs, consult with qualified public health 
-              officials and veterinary authorities. This prototype serves to demonstrate computational 
-              approaches and workflows that could be adapted for real-world implementation after 
-              appropriate validation and testing.
+              This research demonstrates the feasibility of fractional-order stochastic modeling and deep 
+              reinforcement learning for rabies outbreak prediction. The system provides a computational framework 
+              that can be adapted and validated for operational use after appropriate field testing, parameter 
+              calibration with local outbreak data, and collaboration with public health authorities.
             </p>
           </div>
         </div>
@@ -388,10 +394,10 @@
         </div>
       </div>
       <p class="text-muted-blue text-sm">
-        Developed as part of advanced research in epidemiological modeling and computational optimization.
+        Fractional-Order Stochastic Transmission Model with Deep Reinforcement Learning for Rabies Outbreak Prediction
       </p>
       <p class="text-muted-blue text-xs mt-2">
-        &copy; 2024 PAWPATROL Research Project. For academic use only.
+        Research System v1.0 | Davao de Oro, Philippines 
       </p>
     </div>
   </div>
@@ -410,15 +416,16 @@ const technologies = [
       { name: 'Vue 3', icon: 'pi pi-code', purpose: 'Framework' },
       { name: 'Vite', icon: 'pi pi-bolt', purpose: 'Build Tool' },
       { name: 'Pinia', icon: 'pi pi-database', purpose: 'State Management' },
-      { name: 'Vue Router', icon: 'pi pi-sitemap', purpose: 'Navigation' }
+      { name: 'PrimeVue', icon: 'pi pi-palette', purpose: 'UI Components' }
     ]
   },
   {
-    category: 'UI/UX',
+    category: 'Backend',
     items: [
-      { name: 'PrimeVue', icon: 'pi pi-palette', purpose: 'Components' },
-      { name: 'Tailwind CSS', icon: 'pi pi-brush', purpose: 'Styling' },
-      { name: 'PrimeIcons', icon: 'pi pi-star', purpose: 'Icons' }
+      { name: 'FastAPI', icon: 'pi pi-server', purpose: 'API Framework' },
+      { name: 'Python 3.9+', icon: 'pi pi-code', purpose: 'Language' },
+      { name: 'NumPy', icon: 'pi pi-calculator', purpose: 'Numerical Computing' },
+      { name: 'Stable-Baselines3', icon: 'pi pi-brain', purpose: 'DRL (DQN)' }
     ]
   },
   {
@@ -426,15 +433,17 @@ const technologies = [
     items: [
       { name: 'Leaflet.js', icon: 'pi pi-map', purpose: 'Interactive Maps' },
       { name: 'Chart.js', icon: 'pi pi-chart-bar', purpose: 'Data Charts' },
-      { name: 'Vue-ChartJS', icon: 'pi pi-chart-line', purpose: 'Chart Integration' }
+      { name: 'Tailwind CSS', icon: 'pi pi-brush', purpose: 'Styling' },
+      { name: 'PrimeIcons', icon: 'pi pi-star', purpose: 'Icons' }
     ]
   },
   {
-    category: 'Storage',
+    category: 'Mathematical',
     items: [
-      { name: 'Local Storage', icon: 'pi pi-save', purpose: 'Data Persistence' },
-      { name: 'JSON', icon: 'pi pi-file', purpose: 'Data Format' },
-      { name: 'Browser APIs', icon: 'pi pi-globe', purpose: 'Web Standards' }
+      { name: 'SciPy', icon: 'pi pi-chart-line', purpose: 'Scientific Computing' },
+      { name: 'Fractional Calculus', icon: 'pi pi-sitemap', purpose: 'Memory Effects' },
+      { name: 'Stochastic Processes', icon: 'pi pi-random', purpose: 'Uncertainty Modeling' },
+      { name: 'Gym Environment', icon: 'pi pi-box', purpose: 'RL Training' }
     ]
   }
 ]

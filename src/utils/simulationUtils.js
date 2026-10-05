@@ -336,11 +336,41 @@ export const calculateGrowthRate = (currentInfected, previousInfected) => {
 }
 
 /**
- * Predict future infections (simple exponential model)
+ * Predict future infections (with population constraints)
+ * Uses logistic growth model to prevent unrealistic exponential explosion
  */
-export const predictFutureInfections = (currentInfected, growthRate, days) => {
-  if (growthRate <= 0) return currentInfected
-  return Math.round(currentInfected * Math.pow(1 + growthRate, days))
+export const predictFutureInfections = (currentInfected, growthRate, days, totalPopulation = null) => {
+  if (growthRate <= 0 || currentInfected <= 0) return currentInfected
+  
+  // If no population provided, use simple exponential with reasonable cap
+  if (!totalPopulation || totalPopulation <= 0) {
+    const predicted = Math.round(currentInfected * Math.pow(1 + growthRate, days))
+    // Cap at 10x current infected as safety measure
+    return Math.min(predicted, currentInfected * 10)
+  }
+  
+  // Use logistic growth model for realistic population-constrained growth
+  // Formula: P(t) = K / (1 + ((K - P0) / P0) * e^(-r*t))
+  // Where: K = carrying capacity (total population)
+  //        P0 = initial infected
+  //        r = growth rate
+  //        t = time (days)
+  
+  const K = totalPopulation // Carrying capacity
+  const P0 = currentInfected
+  const r = growthRate
+  const t = days
+  
+  // Calculate logistic growth
+  const exponent = -r * t
+  const denominator = 1 + ((K - P0) / P0) * Math.exp(exponent)
+  const predicted = K / denominator
+  
+  // Ensure we don't exceed total population
+  const result = Math.min(Math.round(predicted), K)
+  
+  // Sanity check: if result is somehow less than current, return current
+  return Math.max(result, currentInfected)
 }
 
 /**
@@ -377,8 +407,8 @@ export const predictFutureRiskLevel = (municipality, dailyData = null, futureDay
     }
   }
   
-  // Predict future infected count
-  const predictedInfected = predictFutureInfections(currentInfected, growthRate, futureDays)
+  // Predict future infected count WITH POPULATION CONSTRAINT
+  const predictedInfected = predictFutureInfections(currentInfected, growthRate, futureDays, totalPopulation)
   const predictedInfectionRate = totalPopulation > 0 ? (predictedInfected / totalPopulation) * 100 : 0
   
   // Predict vaccination coverage (assuming some vaccination effort)
@@ -488,8 +518,8 @@ export const generateTimeSeriesForecast = (municipalities, dailyData = null, for
     // Generate day-by-day predictions
     let cumulativeInfected = currentInfected
     for (let day = 1; day <= forecastDays; day++) {
-      // Predict infections for this day
-      cumulativeInfected = predictFutureInfections(currentInfected, dailyGrowthRate, day)
+      // Predict infections for this day WITH POPULATION CONSTRAINT
+      cumulativeInfected = predictFutureInfections(currentInfected, dailyGrowthRate, day, totalPopulation)
       const infectionRate = totalPopulation > 0 ? (cumulativeInfected / totalPopulation) * 100 : 0
       
       // Predict vaccination coverage growth

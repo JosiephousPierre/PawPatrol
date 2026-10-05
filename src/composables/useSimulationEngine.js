@@ -76,12 +76,19 @@ export function useSimulationEngine() {
 
       const response = await apiClient.runSimulation(municipalities, settings)
       console.log('📊 Simulation: Backend response received:', response)
+      console.log('📊 First municipality from backend:', response.municipalities?.[0])
       
       if (response.success) {
         // Update municipalities with results, but preserve actual current data
         response.municipalities.forEach(result => {
           const municipality = appStore.municipalities.find(m => m.id === result.id)
           if (municipality) {
+            console.log(`📊 Storing predictions for ${result.name}:`, {
+              predictedInfectedDogs: result.predictedInfectedDogs,
+              predictedInfectedCats: result.predictedInfectedCats,
+              predictedInfectedHumans: result.predictedInfectedHumans
+            })
+            
             // ✅ FIXED: Store predictions separately, don't overwrite actual current data
             municipality.predictedInfectedDogs = result.predictedInfectedDogs || 0
             municipality.predictedInfectedCats = result.predictedInfectedCats || 0

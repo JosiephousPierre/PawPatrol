@@ -5,9 +5,7 @@
       <!-- Logo -->
       <div class="p-6 border-b border-muted-blue">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <i class="pi pi-shield text-white text-xl"></i>
-          </div>
+          <img src="@/Logo/PawPatrol Logo.png" alt="PAWPATROL Logo" class="w-10 h-10 object-contain" />
           <div>
             <h2 class="text-xl font-bold">PAWPATROL</h2>
             <p class="text-xs text-light-blue">Research Prototype</p>

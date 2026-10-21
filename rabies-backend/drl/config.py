@@ -50,6 +50,37 @@ class DRLConfig:
     max_steps_per_episode: int = 30  # Max steps (one per day)
     
     # =========================================================================
+    # NEW EPIDEMIOLOGICAL PARAMETERS (Phase 1 - SI+V+BD Model)
+    # =========================================================================
+    
+    # Birth Rates (Λ) - Daily births per individual
+    lambda_dog: float = 0.0001      # Dog birth rate
+    lambda_cat: float = 0.0001      # Cat birth rate
+    lambda_human: float = 0.00005   # Human birth rate
+    
+    # Natural Mortality (μ) - Natural death rates (excluding rabies)
+    mu_dog: float = 0.0001          # Dog natural mortality
+    mu_cat: float = 0.0002          # Cat natural mortality (shorter lifespan)
+    mu_human: float = 0.00003       # Human natural mortality (longer lifespan)
+    
+    # Rabies Mortality (δ) - Rabies-specific death rates
+    delta_dog: float = 0.1          # Dog rabies mortality (~10 day survival)
+    delta_cat: float = 0.12         # Cat rabies mortality (slightly faster)
+    delta_human: float = 0.15       # Human rabies mortality (without PEP)
+    
+    # Stochastic Intensities (σ) - Species-specific noise
+    sigma_1: float = 0.1            # Dog stochastic intensity
+    sigma_2: float = 0.08           # Cat stochastic intensity (less variable)
+    sigma_3: float = 0.05           # Human stochastic intensity (least variable)
+    
+    # Transmission Coefficients (β) - Explicit transmission rates
+    beta_dd: float = 0.15           # Dog-to-dog transmission
+    beta_dc: float = 0.06           # Dog-to-cat transmission (0.15 × 0.4)
+    beta_cc: float = 0.105          # Cat-to-cat transmission (0.15 × 0.7)
+    beta_dh: float = 0.0015         # Dog-to-human transmission (0.15 × 0.01)
+    beta_ch: float = 0.00075        # Cat-to-human transmission (half of dog-to-human)
+    
+    # =========================================================================
     # REWARD FUNCTION WEIGHTS
     # =========================================================================
     infection_penalty: float = 1.0  # Weight for infections

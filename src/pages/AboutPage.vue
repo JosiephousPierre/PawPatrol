@@ -3,17 +3,14 @@
     <!-- Header -->
     <div class="text-center">
       <div class="flex items-center justify-center space-x-3 mb-4">
-        <div class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
-          <i class="pi pi-shield text-white text-3xl"></i>
-        </div>
+        <img src="@/Logo/PawPatrol Logo.png" alt="PAWPATROL Logo" class="w-16 h-16 object-contain" />
         <div>
           <h1 class="text-4xl font-bold text-dark-blue">PAWPATROL</h1>
           <p class="text-muted-blue">Research Prototype System</p>
         </div>
       </div>
       <p class="text-xl text-muted-blue max-w-3xl mx-auto">
-        Fractional-Order Stochastic Transmission Model with Deep Reinforcement Learning 
-        for Rabies Outbreak Prediction and Vaccination Optimization in Davao de Oro, Philippines
+        A Hybrid Quantum–Classical Framework for Stochastic Network-Based Rabies Transmission Modeling with Fractional-Order Dynamics, Deep Reinforcement Learning Adaptive Control, and Multiscale Spatial Heterogeneity in Coupled Dog (Canis lupus familiaris), Cat (Felis catus), and Human Populations
       </p>
     </div>
 
@@ -27,23 +24,21 @@
       <template #content>
         <div class="p-6">
           <p class="text-muted-blue leading-relaxed text-justify">
-            PAWPATROL implements a fractional-order stochastic transmission model for rabies outbreak 
-            prediction across the 11 municipalities of Davao de Oro, Philippines. The system combines 
-            advanced mathematical modeling with Deep Reinforcement Learning (Deep Q-Network) to provide 
-            AI-powered vaccination recommendations. The fractional-order approach captures long-term 
-            memory effects in disease transmission, while stochastic components model environmental 
-            uncertainty and randomness in contact patterns.
+            PAWPATROL implements a fractional-order stochastic SI+V+BD (Susceptible-Infected-Vaccinated with Births-Deaths) 
+            transmission model for rabies outbreak prediction across the 11 municipalities of Davao de Oro, Philippines. 
+            The system combines advanced mathematical modeling with Deep Reinforcement Learning (Deep Q-Network) to provide 
+            AI-powered vaccination recommendations. The fractional-order approach captures long-term memory effects in disease 
+            transmission, while stochastic components model environmental uncertainty and randomness in contact patterns. 
+            The model explicitly incorporates population dynamics through birth and death rates, reflecting realistic demographic changes.
           </p>
           <br>
           <p class="text-muted-blue leading-relaxed text-justify">
-            The model incorporates multi-species transmission dynamics (dogs, cats, and humans), 
-            inter-municipality spread through explicit network connections, population-density-based 
-            spatial heterogeneity, and time-series analysis of infection trends. A trained Deep Q-Network 
-            provides adaptive vaccination strategies by learning optimal resource allocation patterns 
-            from 100,000+ simulated outbreak scenarios. The system enables public health officials 
-            to simulate outbreak scenarios, visualize transmission patterns on interactive maps, 
-            and receive data-driven vaccination recommendations tailored to each municipality's 
-            current outbreak status.
+            The model incorporates multi-species transmission dynamics (dogs as primary reservoir, cats as spillover hosts, 
+            and humans as end hosts), inter-municipality spread through explicit network connections, population-density-based 
+            spatial heterogeneity, and time-series analysis of infection trends. A trained Deep Q-Network provides adaptive 
+            vaccination strategies by learning optimal resource allocation patterns from extensive simulated outbreak scenarios. 
+            The system enables public health officials to simulate outbreak scenarios, visualize transmission patterns on 
+            interactive maps, and receive data-driven vaccination recommendations tailored to each municipality's current outbreak status.
           </p>
         </div>
       </template>
@@ -152,16 +147,17 @@
               <div class="space-y-4">
                 <div class="border border-light-blue rounded-lg p-4">
                   <h4 class="font-medium text-dark-blue mb-2">Mathematical Model</h4>
-                  <p class="text-sm text-muted-blue mb-2">Fractional-order stochastic SIR with Caputo derivative:</p>
-                  <p class="text-xs font-mono text-dark-blue bg-gray-50 p-2 rounded">dI/dt<sup>α</sup> = β·p(t)·S·I/N - γ·I + σ·dW(t)</p>
+                  <p class="text-sm text-muted-blue mb-2">Fractional-order stochastic SI+V+BD with Caputo derivative:</p>
+                  <p class="text-xs font-mono text-dark-blue bg-gray-50 p-2 rounded">dI/dt<sup>α</sup> = β·p(t)·S·I/N - (μ+δ)·I + σ·dW(t)</p>
+                  <p class="text-xs text-muted-blue mt-1">Where: λ (births), μ (natural deaths), δ (rabies deaths)</p>
                 </div>
                 <div class="border border-light-blue rounded-lg p-4">
                   <h4 class="font-medium text-dark-blue mb-2">Risk Assessment</h4>
-                  <p class="text-sm text-muted-blue">Real-time risk scoring based on infection rates, vaccination coverage, and spatial factors</p>
+                  <p class="text-sm text-muted-blue">Real-time risk scoring based on infection rates, vaccination coverage, spatial factors, and demographic dynamics</p>
                 </div>
                 <div class="border border-light-blue rounded-lg p-4">
                   <h4 class="font-medium text-dark-blue mb-2">DRL Recommendations</h4>
-                  <p class="text-sm text-muted-blue">Deep Q-Network trained on 100,000+ simulation episodes for optimal vaccination strategies</p>
+                  <p class="text-sm text-muted-blue">Deep Q-Network trained on extensive simulation episodes for optimal vaccination strategies</p>
                 </div>
               </div>
             </div>
@@ -385,19 +381,17 @@
     <!-- Footer -->
     <div class="text-center py-8">
       <div class="flex items-center justify-center space-x-3 mb-4">
-        <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-          <i class="pi pi-shield text-white text-xl"></i>
-        </div>
+        <img src="@/Logo/PawPatrol Logo.png" alt="PAWPATROL Logo" class="w-12 h-12 object-contain" />
         <div>
           <h3 class="text-xl font-bold text-dark-blue">PAWPATROL</h3>
           <p class="text-sm text-muted-blue">Research Prototype v1.0</p>
         </div>
       </div>
       <p class="text-muted-blue text-sm">
-        Fractional-Order Stochastic Transmission Model with Deep Reinforcement Learning for Rabies Outbreak Prediction
+        Fractional-Order Stochastic SI+V+BD Transmission Model with Deep Reinforcement Learning for Rabies Outbreak Prediction
       </p>
       <p class="text-muted-blue text-xs mt-2">
-        Research System v1.0 | Davao de Oro, Philippines 
+        Research System v1.0 | Davao de Oro, Philippines | 2026
       </p>
     </div>
   </div>

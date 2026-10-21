@@ -5,9 +5,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-4">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <i class="pi pi-shield text-white text-xl"></i>
-            </div>
+            <img src="@/Logo/PawPatrol Logo.png" alt="PAWPATROL Logo" class="w-10 h-10 object-contain" />
             <h1 class="text-2xl font-bold text-dark-blue">PAWPATROL</h1>
           </div>
           <Button 
@@ -42,8 +40,7 @@
         </h1>
         
         <p class="text-xl md:text-2xl text-muted-blue mb-4 max-w-4xl mx-auto leading-relaxed animate-slide-up-delay-1">
-          Fractional-Order Stochastic Transmission Model with Deep Reinforcement Learning 
-          for Rabies Outbreak Prediction and Vaccination Optimization
+          A Hybrid Quantum–Classical Framework for Stochastic Network-Based Rabies Transmission Modeling with Fractional-Order Dynamics, Deep Reinforcement Learning Adaptive Control, and Multiscale Spatial Heterogeneity in Coupled Dog (Canis lupus familiaris), Cat (Felis catus), and Human Populations
         </p>
         
         <p class="text-lg text-muted-blue mb-10 max-w-3xl mx-auto animate-slide-up-delay-2">
@@ -353,9 +350,7 @@
         <div class="grid md:grid-cols-3 gap-8">
           <div>
             <div class="flex items-center space-x-3 mb-4">
-              <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <i class="pi pi-shield text-white"></i>
-              </div>
+              <img src="@/Logo/PawPatrol Logo.png" alt="PAWPATROL Logo" class="w-8 h-8 object-contain" />
               <h3 class="text-xl font-bold text-white">PAWPATROL</h3>
             </div>
             <p class="text-light-blue">

@@ -161,6 +161,14 @@ async def run_simulation(request: SimulationRequest):
         HTTPException: If parameters invalid or simulation fails
     """
     try:
+        # =====================================================================
+        # PHASE 1: NEW PARAMETERS ACCEPTED (Backward Compatible)
+        # =====================================================================
+        # The API now accepts 14 new parameters (Λ, μ, δ, σ, β coefficients)
+        # Old API calls still work with defaults
+        # New parameters will be used in Phase 2 (formula implementation)
+        # =====================================================================
+        
         # Validate parameters
         validation_request = ParameterValidationRequest(
             fractionalOrder=request.settings.fractionalOrder,
@@ -220,6 +228,15 @@ async def run_simulation(request: SimulationRequest):
                 result['riskLevel'] = 'unknown'
         
         # Prepare response
+        
+        # DEBUG: Check what's in simulation_results before Pydantic processes it
+        if simulation_results:
+            first = simulation_results[0]
+            print(f"[DEBUG main.py] Before Pydantic - simulation_results[0] cumulative fields:")
+            print(f"   totalDogBirths: {first.get('totalDogBirths', 'MISSING')}")
+            print(f"   totalDogNaturalDeaths: {first.get('totalDogNaturalDeaths', 'MISSING')}")
+            print(f"   totalHumanVaccinations: {first.get('totalHumanVaccinations', 'MISSING')}")
+        
         response = SimulationResponse(
             success=True,
             municipalities=simulation_results,
@@ -232,6 +249,14 @@ async def run_simulation(request: SimulationRequest):
                 "formula": "R_i = I^_i(T) / N_i"
             }
         )
+        
+        # DEBUG: Check what Pydantic did to the data
+        if response.municipalities:
+            first_resp = response.municipalities[0]
+            print(f"[DEBUG main.py] After Pydantic - response.municipalities[0] cumulative fields:")
+            print(f"   totalDogBirths: {getattr(first_resp, 'totalDogBirths', 'MISSING')}")
+            print(f"   totalDogNaturalDeaths: {getattr(first_resp, 'totalDogNaturalDeaths', 'MISSING')}")
+            print(f"   totalHumanVaccinations: {getattr(first_resp, 'totalHumanVaccinations', 'MISSING')}")
         
         # Debug: Log first municipality predictions
         if simulation_results:

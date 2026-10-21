@@ -1,21 +1,23 @@
 # Stochastic Intensity (σ) Values - Research and Validation
 
-**Date**: December 2024  
+**Date**: October 2026 (Updated)  
 **Topic**: Environmental Uncertainty Parameter Values  
-**Context**: User asks: "Are those values the right thing to assign? Like are those realistic values?"
+**Context**: Species-specific stochastic intensities in SI+V+BD model
 
 ---
 
 ## Executive Summary
 
-**Current Implementation**:
-- None (σ = 0): Deterministic model
-- Low (σ = 0.05): Small environmental variability  
-- Moderate (σ = 0.10): Moderate environmental variability
+**Current Implementation (SPECIES-SPECIFIC)**:
+- **σ₁ = 0.1** (Dogs) - Highest variability (stray population, roaming behavior)
+- **σ₂ = 0.08** (Cats) - Moderate variability (less roaming than dogs)
+- **σ₃ = 0.05** (Humans) - Lowest variability (controlled environment)
 
 **Research Finding**: These values are **REASONABLE and within typical ranges** used in stochastic epidemic modeling literature.
 
 **Status**: ✅ **VALUES ARE APPROPRIATE** - Aligned with published research
+
+**IMPORTANT**: The system uses **independent Wiener processes** for each species, not a single global σ value. This allows species-specific environmental uncertainty.
 
 ---
 
@@ -24,15 +26,16 @@
 In stochastic differential equations (SDEs) for epidemic models:
 
 ```
-dI/dt^α = β·S·I/N - γ·I + σ·dW(t)
-                           ^^^^^^^^^^
-                           Stochastic term
+dI/dt^α = β·S·I/N - (μ+δ)·I + σ·dW(t)
+                              ^^^^^^^^^^
+                              Stochastic term (species-specific)
 ```
 
 Where:
-- **σ (sigma)**: Stochastic intensity / diffusion coefficient
-- **dW(t)**: Wiener process increment (Brownian motion)
+- **σ (sigma)**: Stochastic intensity / diffusion coefficient (species-specific)
+- **dW(t)**: Wiener process increment (Brownian motion) - **independent** for each species
 - **σ·dW(t)**: Environmental noise / randomness
+- **(μ+δ)·I**: Natural deaths + Rabies deaths (SI+V+BD model - no recovery)
 
 ### Biological Interpretation
 
@@ -42,6 +45,25 @@ Stochastic intensity represents:
 3. **Measurement Uncertainty**: Errors in data collection
 4. **Seasonal Fluctuations**: Non-periodic random variations
 5. **Demographic Stochasticity**: Random individual-level events
+
+### Species-Specific Implementation (PAWPATROL)
+
+The model uses **INDEPENDENT** Wiener processes for each species:
+
+```python
+# Generate independent noise for each species
+dW1, dW2, dW3 = generate_independent_wiener_processes(dt, [σ₁, σ₂, σ₃])
+
+# Apply species-specific noise
+dI_dog = ... + σ₁·dW₁(t)    # Dogs get their own noise
+dI_cat = ... + σ₂·dW₂(t)    # Cats get independent noise  
+dI_human = ... + σ₃·dW₃(t)  # Humans get independent noise
+```
+
+**Why species-specific?**
+- **Dogs (σ₁ = 0.1)**: Highest variability - stray populations, roaming behavior, weather-dependent activity
+- **Cats (σ₂ = 0.08)**: Moderate variability - less roaming than dogs, semi-domestic
+- **Humans (σ₃ = 0.05)**: Lowest variability - controlled environment, predictable behavior
 
 ---
 
@@ -87,7 +109,50 @@ Stochastic intensity represents:
 
 ---
 
-## Typical Stochastic Intensity Ranges
+## PAWPATROL Implementation
+
+### Current Values (Code Implementation)
+
+```python
+# From transmission_model.py (lines 128-130)
+sigma_1: float = 0.1    # Dogs - highest variability
+sigma_2: float = 0.08   # Cats - moderate variability  
+sigma_3: float = 0.05   # Humans - lowest variability
+```
+
+### Why These Specific Values?
+
+| Species | σ Value | Justification | Biological Reasoning |
+|---------|---------|---------------|----------------------|
+| **Dogs** | 0.1 | Highest mobility | Free-roaming, stray populations, weather-dependent activity, unpredictable contact rates |
+| **Cats** | 0.08 | Moderate mobility | Semi-domestic, less roaming than dogs, more territorial |
+| **Humans** | 0.05 | Lowest mobility | Controlled environment, predictable schedules, indoor activities |
+
+### Independent Wiener Processes
+
+**Critical Implementation Detail**: Each species gets **independent** random noise:
+
+```python
+# Function: generate_independent_wiener_processes()
+# Location: transmission_model.py, lines 254-279
+
+wiener_increments = []
+for sigma in [sigma_1, sigma_2, sigma_3]:
+    dW = wiener_increment(dt, sigma)  # Independent for each species
+    wiener_increments.append(dW)
+
+return [dW1, dW2, dW3]  # Three independent noise sources
+```
+
+**Why independent?**
+- Dog behavior doesn't directly correlate with human behavior
+- Cats have different activity patterns than dogs
+- Environmental factors affect species differently
+- Mathematically: Cov(dW₁, dW₂) = 0
+
+---
+
+## Validation Against Literature Ranges
 
 Based on literature review and established practice in stochastic epidemic modeling:
 
@@ -100,20 +165,21 @@ Based on literature review and established practice in stochastic epidemic model
 | **High** | σ = 0.20 - 0.30 | Large variability | Highly variable environments |
 | **Very High** | σ > 0.30 | Extreme uncertainty | Crisis/outbreak scenarios |
 
-### PAWPATROL Values (✅ VALIDATED):
+### PAWPATROL Values Validation:
 
-```javascript
-// Current implementation
-uncertaintyOptions = [
-  { label: 'None (Deterministic)', value: 0 },     // ✅ Standard baseline
-  { label: 'Low (Minimal Variation)', value: 0.05 },  // ✅ Within typical range
-  { label: 'Moderate (Standard)', value: 0.10 }    // ✅ Most commonly used
-]
-```
+| Species | σ Value | Literature Range | Status |
+|---------|---------|------------------|--------|
+| **Dogs (σ₁)** | 0.10 | 0.10-0.15 (moderate) | ✅ **Within range** |
+| **Cats (σ₂)** | 0.08 | 0.05-0.08 (low to moderate) | ✅ **Within range** |
+| **Humans (σ₃)** | 0.05 | 0.05-0.08 (low) | ✅ **Within range** |
+
+**Conclusion**: All three values fall within established literature ranges for stochastic epidemic models.
 
 ---
 
-## Why σ = 0.10 is "Standard"
+## Why These Specific Values?
+
+### Dogs: σ₁ = 0.10 (Moderate)
 
 ### Theoretical Justification
 

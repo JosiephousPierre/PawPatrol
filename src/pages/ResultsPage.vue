@@ -359,9 +359,9 @@
                   <div class="flex items-start space-x-2">
                     <span class="text-red-600 font-mono">▸</span>
                     <div class="flex-1">
-                      <span class="font-medium">Removed (Died/Recovered):</span>
+                      <span class="font-medium">Died from Rabies:</span>
                       <span class="ml-2 text-muted-blue">~{{ Math.abs(infectionFlow.dogs.removed).toLocaleString() }} dogs</span>
-                      <span class="ml-2 text-xs text-gray-500">(10-day infectious period)</span>
+                      <span class="ml-2 text-xs text-red-600 font-medium">(rabies is 100% fatal)</span>
                     </div>
                   </div>
                   <div class="flex items-start space-x-2">
@@ -381,9 +381,11 @@
                   </div>
                   <div class="mt-3 p-3 bg-white rounded border border-blue-200">
                     <p class="text-xs text-muted-blue leading-relaxed">
-                      <strong class="text-dark-blue">Why dogs remain high:</strong> Dogs are the primary rabies reservoir. 
-                      Continuous dog-to-dog transmission generates new cases ({{ infectionFlow.dogs.newInfections.toLocaleString() }} new infections) 
-                      while infected dogs are removed through death or recovery. Dogs maintain transmission over time.
+                      <strong class="text-dark-blue">Infection flow:</strong> {{ infectionFlow.dogs.initial.toLocaleString() }} initial infected 
+                      + {{ infectionFlow.dogs.newInfections.toLocaleString() }} new infections 
+                      - {{ Math.abs(infectionFlow.dogs.removed).toLocaleString() }} rabies deaths 
+                      = {{ infectionFlow.dogs.final.toLocaleString() }} final infected. 
+                      Dogs maintain transmission through continuous dog-to-dog spread. Vaccinations are shown in "Population Dynamics Summary" below.
                     </p>
                   </div>
                 </div>
@@ -456,39 +458,42 @@
                   <div class="flex items-start space-x-2">
                     <span class="text-orange-600 font-mono">▸</span>
                     <div class="flex-1">
-                      <span class="font-medium">Initial Exposed:</span>
+                      <span class="font-medium">Initial Infected:</span>
                       <span class="ml-2 text-muted-blue">{{ infectionFlow.humans.initial.toLocaleString() }} people</span>
-                    </div>
-                  </div>
-                  <div class="flex items-start space-x-2">
-                    <span class="text-green-600 font-mono">▸</span>
-                    <div class="flex-1">
-                      <span class="font-medium">Treated with PEP:</span>
-                      <span class="ml-2 text-muted-blue">~{{ Math.abs(infectionFlow.humans.removed).toLocaleString() }} people</span>
-                      <span class="ml-2 text-xs text-green-600 font-medium">(saved by post-exposure prophylaxis)</span>
                     </div>
                   </div>
                   <div class="flex items-start space-x-2">
                     <span class="text-red-600 font-mono">▸</span>
                     <div class="flex-1">
-                      <span class="font-medium">New Exposures:</span>
+                      <span class="font-medium">Died from Rabies:</span>
+                      <span class="ml-2 text-muted-blue">~{{ Math.abs(infectionFlow.humans.removed).toLocaleString() }} people</span>
+                      <span class="ml-2 text-xs text-red-600 font-medium">(those who did not receive timely PEP)</span>
+                    </div>
+                  </div>
+                  <div class="flex items-start space-x-2">
+                    <span class="text-orange-600 font-mono">▸</span>
+                    <div class="flex-1">
+                      <span class="font-medium">New Infections:</span>
                       <span class="ml-2 text-muted-blue">+{{ infectionFlow.humans.newInfections.toLocaleString() }} people</span>
-                      <span class="ml-2 text-xs text-gray-500">(from animal bites)</span>
+                      <span class="ml-2 text-xs text-gray-500">(from animal bites during simulation)</span>
                     </div>
                   </div>
                   <div class="flex items-start space-x-2 pt-2 border-t border-orange-200">
                     <span class="text-orange-700 font-mono">▸</span>
                     <div class="flex-1">
-                      <span class="font-medium">Final Cases:</span>
+                      <span class="font-medium">Final Infected:</span>
                       <span class="ml-2 text-orange-700 font-semibold">{{ infectionFlow.humans.final.toLocaleString() }} people</span>
-                      <span class="ml-2 text-xs text-gray-500">(missed PEP treatment)</span>
+                      <span class="ml-2 text-xs text-gray-500">(currently infected, need PEP urgently)</span>
                     </div>
                   </div>
                   <div class="mt-3 p-3 bg-white rounded border border-orange-200">
                     <p class="text-xs text-muted-blue leading-relaxed">
-                      <strong class="text-dark-blue">Human cases are preventable:</strong> Post-exposure prophylaxis (PEP) is nearly 100% 
-                      effective when administered promptly after animal bite. The model assumes ~50% of exposed people receive timely PEP. 
-                      Improving PEP access and bite reporting can prevent most human cases.
+                      <strong class="text-dark-blue">Infection flow:</strong> {{ infectionFlow.humans.initial.toLocaleString() }} initial infected 
+                      + {{ infectionFlow.humans.newInfections.toLocaleString() }} new infections 
+                      - {{ Math.abs(infectionFlow.humans.removed).toLocaleString() }} rabies deaths 
+                      = {{ infectionFlow.humans.final.toLocaleString() }} currently infected. 
+                      Human cases are preventable with timely PEP (Post-Exposure Prophylaxis). 
+                      PEP treatments are shown in "Population Dynamics Summary" below.
                     </p>
                   </div>
                 </div>
@@ -519,6 +524,166 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </template>
+      </Card>
+
+      <!-- Population Dynamics Summary (NEW - Phase 2) -->
+      <Card v-if="currentMunicipality && cumulativeStatistics" class="bg-white">
+        <template #header>
+          <div class="px-6 py-4 border-b border-light-blue">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-lg font-semibold text-dark-blue flex items-center">
+                  <i class="pi pi-chart-line text-primary mr-2"></i>
+                  Population Dynamics Summary
+                  <span class="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded">
+                    {{ simulationDays }}-Day Period
+                  </span>
+                </h3>
+                <p class="text-muted-blue text-sm">Cumulative births, deaths, and vaccinations during simulation</p>
+              </div>
+            </div>
+          </div>
+        </template>
+        <template #content>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Dogs Statistics -->
+              <div class="p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-base font-semibold text-dark-blue flex items-center">
+                    <span class="text-2xl mr-2">🐕</span>
+                    Dogs
+                  </span>
+                  <span class="text-xs px-2 py-1 bg-blue-200 text-blue-800 rounded font-medium">Primary Reservoir</span>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-plus-circle text-green-600 mr-2"></i>
+                      Births
+                    </span>
+                    <span class="font-bold text-dark-blue">{{ cumulativeStatistics.dogs.births.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-minus-circle text-gray-600 mr-2"></i>
+                      Natural Deaths
+                    </span>
+                    <span class="font-bold text-dark-blue">{{ cumulativeStatistics.dogs.naturalDeaths.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-times-circle text-red-600 mr-2"></i>
+                      Rabies Deaths
+                    </span>
+                    <span class="font-bold text-red-600">{{ cumulativeStatistics.dogs.rabiesDeaths.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-blue-100 rounded border border-blue-300">
+                    <span class="text-sm text-blue-800 flex items-center font-medium">
+                      <i class="pi pi-shield text-blue-600 mr-2"></i>
+                      Vaccinations
+                    </span>
+                    <span class="font-bold text-blue-700">{{ cumulativeStatistics.dogs.vaccinations.toLocaleString() }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cats Statistics -->
+              <div class="p-5 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-base font-semibold text-dark-blue flex items-center">
+                    <span class="text-2xl mr-2">🐱</span>
+                    Cats
+                  </span>
+                  <span class="text-xs px-2 py-1 bg-purple-200 text-purple-800 rounded font-medium">Spillover Host</span>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-plus-circle text-green-600 mr-2"></i>
+                      Births
+                    </span>
+                    <span class="font-bold text-dark-blue">{{ cumulativeStatistics.cats.births.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-minus-circle text-gray-600 mr-2"></i>
+                      Natural Deaths
+                    </span>
+                    <span class="font-bold text-dark-blue">{{ cumulativeStatistics.cats.naturalDeaths.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-times-circle text-red-600 mr-2"></i>
+                      Rabies Deaths
+                    </span>
+                    <span class="font-bold text-red-600">{{ cumulativeStatistics.cats.rabiesDeaths.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-purple-100 rounded border border-purple-300">
+                    <span class="text-sm text-purple-800 flex items-center font-medium">
+                      <i class="pi pi-shield text-purple-600 mr-2"></i>
+                      Vaccinations
+                    </span>
+                    <span class="font-bold text-purple-700">{{ cumulativeStatistics.cats.vaccinations.toLocaleString() }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Humans Statistics -->
+              <div class="p-5 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-base font-semibold text-dark-blue flex items-center">
+                    <span class="text-2xl mr-2">👤</span>
+                    Humans
+                  </span>
+                  <span class="text-xs px-2 py-1 bg-orange-200 text-orange-800 rounded font-medium">End Host</span>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-plus-circle text-green-600 mr-2"></i>
+                      Births
+                    </span>
+                    <span class="font-bold text-dark-blue">{{ cumulativeStatistics.humans.births.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-minus-circle text-gray-600 mr-2"></i>
+                      Natural Deaths
+                    </span>
+                    <span class="font-bold text-dark-blue">{{ cumulativeStatistics.humans.naturalDeaths.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-white/60 rounded">
+                    <span class="text-sm text-muted-blue flex items-center">
+                      <i class="pi pi-times-circle text-red-600 mr-2"></i>
+                      Rabies Deaths
+                    </span>
+                    <span class="font-bold text-red-600">{{ cumulativeStatistics.humans.rabiesDeaths.toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-orange-100 rounded border border-orange-300">
+                    <span class="text-sm text-orange-800 flex items-center font-medium">
+                      <i class="pi pi-shield text-orange-600 mr-2"></i>
+                      PEP Treatments
+                    </span>
+                    <span class="font-bold text-orange-700">{{ cumulativeStatistics.humans.vaccinations.toLocaleString() }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary Note -->
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p class="text-xs text-muted-blue leading-relaxed flex items-start">
+                <i class="pi pi-info-circle text-blue-600 mr-2 mt-0.5"></i>
+                <span>
+                  <strong class="text-dark-blue">Note:</strong> These statistics represent cumulative totals over the {{ simulationDays }}-day simulation period. 
+                  Natural deaths follow species mortality rates (μ), while rabies deaths result from disease progression (δ). 
+                  Vaccinations for humans represent PEP (Post-Exposure Prophylaxis) treatments after potential rabies exposure.
+                </span>
+              </p>
             </div>
           </div>
         </template>
@@ -1003,32 +1168,42 @@ const completedDate = computed(() => {
 // Municipality Analysis Data (Target Coverage & Infection Rate)
 const municipalityAnalysis = computed(() => {
   return municipalities.value.map(municipality => {
-    const totalDogs = municipality.dogPopulation || 0
-    const totalCats = municipality.catPopulation || 0
+    // Get simulation results for this municipality
+    const munResult = simulationResults.value.municipalities?.find(
+      m => m.id === municipality.id
+    )
+    
+    // Use FINAL populations (after simulation) if available
+    const totalDogs = munResult?.finalDogPopulation ?? (municipality.dogPopulation || 0)
+    const totalCats = munResult?.finalCatPopulation ?? (municipality.catPopulation || 0)
     const totalAnimals = totalDogs + totalCats
     
-    const vaccinatedDogs = municipality.vaccinatedDogs || 0
+    // ✅ OPTION 2: Use FINAL vaccination count from backend (already includes simulation vaccinations)
+    const finalVaccinatedDogs = munResult?.vaccinatedDogs ?? (municipality.vaccinatedDogs || 0)
     
-    // ✅ FIX: Use PREDICTED infections if available (after simulation), otherwise use current
-    const infectedDogs = municipality.predictedInfectedDogs ?? municipality.infectedDogs ?? 0
-    const infectedCats = municipality.predictedInfectedCats ?? municipality.infectedCats ?? 0
-    const infectedHumans = municipality.predictedInfectedHumans ?? municipality.infectedHumans ?? 0
+    // ✅ Use FINAL (PREDICTED) infections (after simulation)
+    const infectedDogs = munResult?.finalInfectedDogs ?? (municipality.predictedInfectedDogs ?? (municipality.infectedDogs || 0))
+    const infectedCats = munResult?.finalInfectedCats ?? (municipality.predictedInfectedCats ?? (municipality.infectedCats || 0))
+    const infectedHumans = munResult?.finalInfectedHumans ?? (municipality.predictedInfectedHumans ?? (municipality.infectedHumans || 0))
     const totalInfected = infectedDogs + infectedCats + infectedHumans
     
-    // Calculate Target Coverage (Vaccination Coverage)
-    const targetCoverage = totalDogs > 0 ? Math.round((vaccinatedDogs / totalDogs) * 100) : 0
+    // Calculate Target Coverage using FINAL vaccination count and FINAL population
+    const targetCoverage = totalDogs > 0 ? Math.round((finalVaccinatedDogs / totalDogs) * 100) : 0
     
-    // Calculate Infection Rate using PREDICTED values
+    // Cap at 100% (in case of rounding or edge cases)
+    const displayedTargetCoverage = Math.min(100, Math.max(0, targetCoverage))
+    
+    // Calculate Infection Rate using FINAL (PREDICTED) values and FINAL population
     const infectionRate = totalAnimals > 0 ? ((infectedDogs + infectedCats) / totalAnimals) * 100 : 0
     
     return {
       id: municipality.id,
       name: municipality.name,
       riskLevel: municipality.riskLevel || 'safe',
-      targetCoverage: targetCoverage,
+      targetCoverage: displayedTargetCoverage,  // Now shows FINAL coverage (after simulation)
       infectionRate: infectionRate,
-      vaccinatedDogs: vaccinatedDogs,
-      totalDogs: totalDogs,
+      vaccinatedDogs: finalVaccinatedDogs,  // Show FINAL count from simulation
+      totalDogs: totalDogs,  // Show FINAL population
       infectedDogs: infectedDogs,
       infectedCats: infectedCats,
       infectedHumans: infectedHumans,
@@ -1130,9 +1305,12 @@ const infectionFlow = computed(() => {
     }
   }
 
-  // Get the municipality from the store (has updated data after simulation)
-  const mun = municipalities.value.find(m => m.id === currentMunicipality.value.id)
-  if (!mun) {
+  // Get simulation result for the current municipality
+  const munResult = simulationResults.value.municipalities?.find(
+    m => m.id === currentMunicipality.value.id
+  )
+  
+  if (!munResult) {
     return {
       dogs: { initial: 0, final: 0, change: 0, changePercent: '0', removed: 0, newInfections: 0 },
       cats: { initial: 0, final: 0, change: 0, changePercent: '0', removed: 0, newInfections: 0 },
@@ -1140,37 +1318,37 @@ const infectionFlow = computed(() => {
     }
   }
 
-  // Dogs
-  const dogsInitial = mun.infectedDogs || 0
-  const dogsFinal = mun.predictedInfectedDogs ?? mun.infectedDogs ?? 0
+  // Dogs - use backend's initial/final values
+  const dogsInitial = munResult.initialInfectedDogs ?? 0
+  const dogsFinal = munResult.finalInfectedDogs ?? munResult.predictedInfectedDogs ?? 0
   const dogsChange = dogsFinal - dogsInitial
   const dogsChangePercent = dogsInitial > 0 ? ((dogsChange / dogsInitial) * 100).toFixed(1) : '0'
   
-  // Estimate removed and new infections for dogs
-  // Removed = initial - final + new infections (approximate)
-  // For simplicity: if decreased, removed > new; if increased, new > removed
-  const dogsRemoved = dogsInitial > dogsFinal ? Math.abs(dogsChange) + Math.floor(dogsFinal * 0.2) : Math.floor(dogsInitial * 0.3)
-  const dogsNewInfections = dogsFinal > dogsInitial ? dogsChange : Math.floor(dogsFinal * 0.2)
+  // Calculate removed (died from rabies) and new infections
+  // Removed = cumulative rabies deaths
+  // New infections = final + removed - initial
+  const dogsRemoved = munResult.totalDogRabiesDeaths || 0
+  const dogsNewInfections = Math.max(0, dogsFinal + dogsRemoved - dogsInitial)
 
-  // Cats
-  const catsInitial = mun.infectedCats || 0
-  const catsFinal = mun.predictedInfectedCats ?? mun.infectedCats ?? 0
+  // Cats - use backend's initial/final values
+  const catsInitial = munResult.initialInfectedCats ?? 0
+  const catsFinal = munResult.finalInfectedCats ?? munResult.predictedInfectedCats ?? 0
   const catsChange = catsFinal - catsInitial
   const catsChangePercent = catsInitial > 0 ? ((catsChange / catsInitial) * 100).toFixed(1) : '0'
   
-  // For cats: most died, very few new infections (spillover)
-  const catsRemoved = catsInitial - catsFinal + catsFinal
-  const catsNewInfections = catsFinal
+  // Calculate removed and new infections for cats
+  const catsRemoved = munResult.totalCatRabiesDeaths || 0
+  const catsNewInfections = Math.max(0, catsFinal + catsRemoved - catsInitial)
 
-  // Humans
-  const humansInitial = mun.infectedHumans || 0
-  const humansFinal = mun.predictedInfectedHumans ?? mun.infectedHumans ?? 0
+  // Humans - use backend's initial/final values
+  const humansInitial = munResult.initialInfectedHumans ?? 0
+  const humansFinal = munResult.finalInfectedHumans ?? munResult.predictedInfectedHumans ?? 0
   const humansChange = humansFinal - humansInitial
   const humansChangePercent = humansInitial > 0 ? ((humansChange / humansInitial) * 100).toFixed(1) : '0'
   
-  // For humans: treated with PEP (removed), some new exposures
-  const humansRemoved = Math.abs(humansChange) > 0 ? Math.abs(humansChange) : Math.floor(humansInitial * 0.9)
-  const humansNewInfections = humansFinal
+  // Calculate removed and new infections for humans
+  const humansRemoved = munResult.totalHumanRabiesDeaths || 0
+  const humansNewInfections = Math.max(0, humansFinal + humansRemoved - humansInitial)
 
   return {
     dogs: {
@@ -1196,6 +1374,39 @@ const infectionFlow = computed(() => {
       changePercent: humansChangePercent,
       removed: humansRemoved,
       newInfections: humansNewInfections
+    }
+  }
+})
+
+// Cumulative Statistics (Phase 2 - NEW)
+const cumulativeStatistics = computed(() => {
+  if (!currentMunicipality.value) return null
+  
+  // Find the simulation result for the current municipality
+  const munResult = simulationResults.value.municipalities?.find(
+    m => m.id === currentMunicipality.value.id
+  )
+  
+  if (!munResult) return null
+  
+  return {
+    dogs: {
+      births: munResult.totalDogBirths || 0,
+      naturalDeaths: munResult.totalDogNaturalDeaths || 0,
+      rabiesDeaths: munResult.totalDogRabiesDeaths || 0,
+      vaccinations: munResult.totalDogVaccinations || 0
+    },
+    cats: {
+      births: munResult.totalCatBirths || 0,
+      naturalDeaths: munResult.totalCatNaturalDeaths || 0,
+      rabiesDeaths: munResult.totalCatRabiesDeaths || 0,
+      vaccinations: munResult.totalCatVaccinations || 0
+    },
+    humans: {
+      births: munResult.totalHumanBirths || 0,
+      naturalDeaths: munResult.totalHumanNaturalDeaths || 0,
+      rabiesDeaths: munResult.totalHumanRabiesDeaths || 0,
+      vaccinations: munResult.totalHumanVaccinations || 0
     }
   }
 })

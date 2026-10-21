@@ -3,8 +3,8 @@
     <div class="w-full max-w-md">
       <!-- Logo and Title -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl mb-4">
-          <i class="pi pi-shield text-primary text-2xl"></i>
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl mb-4 p-2">
+          <img src="@/Logo/PawPatrol Logo.png" alt="PAWPATROL Logo" class="w-full h-full object-contain" />
         </div>
         <h1 class="text-3xl font-bold text-white mb-2">PAWPATROL</h1>
         <p class="text-primary-100">Municipality Access Portal</p>

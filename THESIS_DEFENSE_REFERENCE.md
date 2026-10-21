@@ -4,17 +4,17 @@
 
 ---
 
-### Q: "Why did cats drop from 11,145 to only 2 infected?"
+### Q: "Why did cats drop from initial numbers to very few infected?"
 
 **Answer**:
-> "This behavior reflects the epidemiological reality that cats are spillover hosts, not maintenance hosts for rabies. Over the 365-day simulation, with reduced cat-to-cat transmission (0.7 factor) and reduced dog-to-cat spillover (0.4 factor), new cat infections couldn't keep pace with removals. The remaining 2 infected cats represent recent spillover cases. This is mathematically consistent with the fact that sustained cat-only rabies epidemics have never been documented without a dog or wildlife reservoir."
+> "This behavior reflects the epidemiological reality that cats are spillover hosts, not maintenance hosts for rabies. Over the 365-day simulation, with reduced cat-to-cat transmission (β_cc = 0.105, which is 0.7× the dog rate of 0.15) and reduced dog-to-cat spillover (β_dc = 0.06, which is 0.4× the dog rate), new cat infections couldn't keep pace with rabies deaths. The remaining infected cats represent recent spillover cases. This is mathematically consistent with the fact that sustained cat-only rabies epidemics have never been documented without a dog or wildlife reservoir."
 
 ---
 
 ### Q: "How did you validate the 0.7 cat transmission factor?"
 
 **Answer**:
-> "Extensive literature review found no published studies directly quantifying cat-to-cat versus dog-to-dog transmission rates. The 0.7 factor is a modeling assumption based on qualitative evidence that: (1) dogs cause >95-99% of human rabies cases globally, (2) cats are incidental spillover hosts not maintenance hosts, and (3) no sustained cat-only epidemics exist. This represents a conservative estimate reflecting cats' secondary role in transmission dynamics in dog-endemic areas like the Philippines."
+> "Extensive literature review found no published studies directly quantifying cat-to-cat versus dog-to-dog transmission rates. The actual coefficient β_cc = 0.105 represents 70% of the dog-to-dog coefficient (β_dd = 0.15), hence the 0.7 factor. This is a modeling assumption based on qualitative evidence that: (1) dogs cause >95-99% of human rabies cases globally, (2) cats are incidental spillover hosts not maintenance hosts, and (3) no sustained cat-only epidemics exist. This represents a conservative estimate reflecting cats' secondary role in transmission dynamics in dog-endemic areas like the Philippines."
 
 **Follow-up if pressed**: 
 > "Research shows cats may have similar per-bite susceptibility to dogs, but the 0.7 factor captures their lower contact rates and dependence on the dog reservoir. This is a known gap in the rabies literature - we documented this limitation and recommend empirical field studies as future work."
@@ -24,7 +24,7 @@
 ### Q: "Is the 0.4 dog-to-cat factor research-based?"
 
 **Answer**:
-> "No, this is also a modeling assumption. No published studies provide empirical transmission coefficients for dog-to-cat spillover. The 0.4 factor represents reduced cross-species contact frequency compared to dog-to-dog interactions. Research on other species (dog-jackal models in Lagos/Nepal) shows cross-species spillover contributes modestly to overall transmission chains, which supports using a reduction factor, though the exact value lacks empirical validation."
+> "No, this is also a modeling assumption. The actual coefficient β_dc = 0.06 represents 40% of the dog-to-dog rate (β_dd = 0.15). No published studies provide empirical transmission coefficients for dog-to-cat spillover. The 0.4 factor represents reduced cross-species contact frequency compared to dog-to-dog interactions. Research on other species (dog-jackal models in Lagos/Nepal) shows cross-species spillover contributes modestly to overall transmission chains, which supports using a reduction factor, though the exact value lacks empirical validation."
 
 ---
 
@@ -56,10 +56,70 @@
 
 ---
 
-### Q: "Did you consider that 'recovered' cats should be 'dead'?"
+### Q: "Did you consider that cats don't recover from rabies - they die?"
 
 **Answer**:
-> "Yes, excellent observation. In the model, the 'recovered' compartment for cats represents removal from the infectious population - primarily through death, as rabies is nearly 100% fatal without treatment. The term 'recovered' is standard in SIR model notation but for cats specifically, this should be interpreted as 'removed/dead'. Dogs may have some true recoveries, but for cats, it's effectively a death count. We could clarify this in the model documentation by using 'removed' terminology for cats."
+> "Yes, absolutely correct. The PAWPATROL system uses an SI+V+BD model (Susceptible-Infected-Vaccinated with Births-Deaths), NOT an SIR model. There is NO recovery compartment in the model. Rabies is 100% fatal - infected animals die from the disease (rabies mortality rate δ) or natural causes (natural mortality rate μ). The model explicitly tracks rabies deaths separately from natural deaths. When infected cats 'disappear' from the infected compartment, they have died from rabies - they do not recover. This is documented in the code with the comment 'REMOVED in Phase 2 - SI model has no recovery'."
+
+---
+
+## Actual Parameter Values (CRITICAL - MEMORIZE THESE)
+
+### Transmission Coefficients
+
+| Parameter | Value | Calculation | Meaning |
+|-----------|-------|-------------|---------|
+| **β_dd** | 0.15 | Baseline | Dog-to-dog transmission (100%) |
+| **β_cc** | 0.105 | 0.15 × 0.7 | Cat-to-cat transmission (70% of dog rate) |
+| **β_dc** | 0.06 | 0.15 × 0.4 | Dog-to-cat spillover (40% of dog rate) |
+| **β_dh** | 0.0015 | 0.15 × 0.01 | Dog-to-human (1% - rare) |
+| **β_ch** | 0.00075 | 0.0015 × 0.5 | Cat-to-human (0.5% - very rare) |
+
+### Birth Rates (per day)
+- **Dogs (λ_dog)**: 0.00050335 → 3.88% annual growth
+- **Cats (λ_cat)**: 0.0004356 → 5.90% annual growth
+- **Humans (λ_human)**: 0.00003288 → 0.58% annual growth
+
+### Natural Death Rates (per day)
+- **Dogs (μ_dog)**: 0.000397
+- **Cats (μ_cat)**: 0.000274
+- **Humans (μ_human)**: 0.00001699
+
+### Rabies Death Rates (per day)
+- **Dogs (δ_dog)**: 0.1 → ~10 day survival (VALIDATED by CDC)
+- **Cats (δ_cat)**: 0.12 → ~8.3 day survival
+- **Humans (δ_human)**: 0.15 → ~6.7 day survival
+
+**Model Type**: SI+V+BD (NOT SIR - NO recovery from rabies)
+
+---
+
+## Model Clarification: SI+V+BD (NOT SIR)
+
+### CRITICAL: Your Model Has NO Recovery
+
+**What this means:**
+- ✅ **S** (Susceptible): Can get infected
+- ✅ **I** (Infected): Currently infected with rabies
+- ❌ **R** (Recovered): **DOES NOT EXIST** in your model
+- ✅ **V** (Vaccinated): Protected from infection
+- ✅ **B** (Births): New individuals born into population
+- ✅ **D** (Deaths): Natural deaths (μ) + Rabies deaths (δ)
+
+**What happens to infected animals?**
+1. They die from rabies (rate δ: 0.1 for dogs, 0.12 for cats, 0.15 for humans)
+2. They die from natural causes (rate μ)
+3. **They DO NOT recover** (rabies is 100% fatal without PEP for humans)
+
+**Population equation:**
+```
+N(t) = S(t) + I(t) + V(t)
+
+NOT: N(t) = S(t) + I(t) + R(t) + V(t)
+```
+
+**If someone asks about SIR:**
+> "We use an SI+V+BD model, not SIR. The 'R' compartment doesn't exist because rabies is 100% fatal in animals. Infected animals die from the disease - they don't recover. The model explicitly tracks rabies deaths separately from natural deaths, which is critical for public health impact assessment."
 
 ---
 
@@ -82,18 +142,25 @@
 
 ### Don't Say
 
-❌ "The parameters are literature-based" (they're not)  
+❌ "The parameters are literature-based" (cat transmission factors are modeling assumptions)  
 ❌ "We validated everything" (two key parameters are assumptions)  
 ❌ "The model is perfect" (acknowledge limitations)  
-❌ "Cats recover from rabies" (they die)
+❌ "Animals recover from rabies" (they die - this is an SI+V+BD model, not SIR)  
+❌ "We use an SIR model" (it's SI+V+BD - no recovery compartment)
+
 
 ### Do Say
 
 ✅ "We conducted extensive literature review"  
-✅ "Assumptions are based on qualitative epidemiological understanding"  
+✅ "Cat transmission assumptions are based on qualitative epidemiological understanding"  
+✅ "We use an SI+V+BD model - Susceptible-Infected-Vaccinated with Births-Deaths"  
+✅ "There is no recovery from rabies - infected animals die (100% fatal without PEP)"  
+✅ "β_cc = 0.105 is 70% of β_dd = 0.15, reflecting cats' secondary role"  
+✅ "β_dc = 0.06 is 40% of β_dd = 0.15, representing dog-to-cat spillover reduction"  
 ✅ "We documented limitations transparently"  
 ✅ "This represents a gap in global rabies research"  
 ✅ "The model is defensible for research purposes with acknowledged limitations"
+
 
 ---
 

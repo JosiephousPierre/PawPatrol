@@ -95,7 +95,7 @@ class DRLRecommender:
                 all_municipalities or [municipality_data]
             )
             
-            # Get DQN prediction (no more emergency override after retraining!)
+            # Get DQN prediction
             action, _ = self.model.predict(observation, deterministic=True)
             vaccination_pct = self.vaccination_levels[int(action)]
             

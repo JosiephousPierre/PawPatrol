@@ -161,21 +161,29 @@ class RabiesVaccinationEnv(gym.Env):
         if self.single_municipality_mode:
             self.current_municipality_idx = self.np_random.integers(0, len(self.municipalities))
             
-            # ✅ CRITICAL FIX: Randomize infection rates from 0% to 90%
+            # ✅ CRITICAL FIX: Generate training scenarios that include LOW infection + LOW coverage
+            # This is the most important scenario - early outbreak with poor preparation!
             municipality = self.municipalities[self.current_municipality_idx]
             total_animals = municipality['dogPopulation'] + municipality['catPopulation']
             
-            # Random infection rate between 0% and 90% (heavy-tailed distribution)
-            # More common: 0-20% (70% of episodes)
-            # Less common: 20-50% (20% of episodes)  
-            # Rare: 50-90% (10% of episodes)
-            rand = self.np_random.random()
-            if rand < 0.7:
-                infection_rate = self.np_random.uniform(0.0, 0.20)  # 0-20%
-            elif rand < 0.9:
+            # Random scenario type
+            scenario = self.np_random.random()
+            
+            if scenario < 0.3:  # 30%: LOW infection + LOW coverage (CRITICAL SCENARIO!)
+                infection_rate = self.np_random.uniform(0.001, 0.05)  # 0.1-5%
+                vaccination_coverage = self.np_random.uniform(0.0, 0.50)  # 0-50%
+            elif scenario < 0.5:  # 20%: MODERATE infection + VARIED coverage
+                infection_rate = self.np_random.uniform(0.05, 0.20)  # 5-20%
+                vaccination_coverage = self.np_random.uniform(0.0, 0.80)  # 0-80%
+            elif scenario < 0.7:  # 20%: HIGH infection + VARIED coverage
                 infection_rate = self.np_random.uniform(0.20, 0.50)  # 20-50%
-            else:
+                vaccination_coverage = self.np_random.uniform(0.0, 0.80)  # 0-80%
+            elif scenario < 0.85:  # 15%: LOW infection + HIGH coverage (well-prepared)
+                infection_rate = self.np_random.uniform(0.001, 0.05)  # 0.1-5%
+                vaccination_coverage = self.np_random.uniform(0.70, 0.90)  # 70-90%
+            else:  # 15%: CRITICAL outbreak
                 infection_rate = self.np_random.uniform(0.50, 0.90)  # 50-90%
+                vaccination_coverage = self.np_random.uniform(0.0, 0.50)  # 0-50%
             
             total_infected = int(total_animals * infection_rate)
             
@@ -184,8 +192,7 @@ class RabiesVaccinationEnv(gym.Env):
             infected_dogs = int(total_infected * dog_ratio)
             infected_cats = total_infected - infected_dogs
             
-            # Random vaccination coverage 0% to 80%
-            vaccination_coverage = self.np_random.uniform(0.0, 0.80)
+            # Apply vaccination coverage
             vaccinated_dogs = int(municipality['dogPopulation'] * vaccination_coverage)
             
             # Ensure valid state (infected + vaccinated can't exceed population)
@@ -419,55 +426,126 @@ class RabiesVaccinationEnv(gym.Env):
         vaccination_pct: float
     ) -> float:
         """
-        Calculate reward for the action taken
+        IMPROVED reward function that teaches proper behavior
         
-        Reward components:
-        - Infection CHANGE reward: Reduced infections = positive, increased = negative
-        - Cost penalty: More vaccination = higher cost
-        - Human infection penalty: Heavy penalty for human cases
-        - Control bonus: Bonus if outbreak is controlled
+        Key insight: Reward should be based on the COMBINATION of:
+        1. Infection rate (risk level)
+        2. Vaccination coverage
         
-        All components are NORMALIZED to prevent extreme values
+        Good combinations get positive rewards, bad combinations get negative rewards.
         
         Returns:
-            reward: Scalar reward value (typically -100 to +100)
+            reward: Scalar reward value
         """
         municipality = self.municipalities[self.current_municipality_idx]
         total_population = municipality['dogPopulation'] + municipality['catPopulation']
+        dog_population = municipality['dogPopulation']
         
-        # Component 1: Infection CHANGE (normalized by population)
-        # Positive reward for reducing infections, negative for increasing
-        infection_change = new_infections - current_infections
-        infection_change_rate = infection_change / total_population  # Normalize to 0-1
-        infection_reward = -infection_change_rate * 100.0  # Scale to -100 to +100
+        # Current state after action
+        infection_rate = new_infections / total_population
+        current_coverage = municipality.get('vaccinatedDogs', 0) / dog_population
         
-        # Component 2: Vaccination cost penalty (small, normalized)
-        vaccination_cost_rate = vaccination_pct  # Already 0-1
-        cost_penalty = vaccination_cost_rate * 10.0  # Scale to 0-10
+        # Determine risk level from infection rate
+        if infection_rate >= 0.10:
+            risk = 'critical'
+        elif infection_rate >= 0.05:
+            risk = 'high'
+        elif infection_rate >= 0.01:
+            risk = 'moderate'
+        elif infection_rate >= 0.001:
+            risk = 'low'
+        else:
+            risk = 'safe'
         
-        # Component 3: Human infection penalty (normalized)
-        human_infections = municipality.get('infectedHumans', 0)
-        human_infection_rate = human_infections / municipality.get('humanPopulation', 10000)
-        human_penalty = human_infection_rate * 1000.0  # Scale appropriately
+        # Determine coverage quality
+        if current_coverage >= 0.80:
+            coverage = 'excellent'
+        elif current_coverage >= 0.70:
+            coverage = 'good'
+        elif current_coverage >= 0.50:
+            coverage = 'fair'
+        else:
+            coverage = 'poor'
         
-        # Component 4: Outbreak control bonus
-        total_infected = municipality['infectedDogs'] + municipality['infectedCats']
-        outbreak_controlled = total_infected < (current_infections * 0.5)  # 50% reduction
-        control_bonus = 20.0 if outbreak_controlled else 0.0
+        # Reward matrix: risk level + coverage combination
+        reward = 0.0
         
-        # Component 5: Penalty for very high infection rates (discourage letting it explode)
-        infection_rate = total_infected / total_population
-        explosion_penalty = 0.0
-        if infection_rate > 0.9:  # More than 90% infected
-            explosion_penalty = 50.0  # Heavy penalty for total outbreak
+        if risk == 'safe':
+            if coverage == 'excellent':
+                reward = 60.0   # Good, but slight waste
+            elif coverage == 'good':
+                reward = 100.0  # PERFECT! Safe with good coverage
+            elif coverage == 'fair':
+                reward = 80.0   # OK
+            else:  # poor
+                reward = 40.0   # Should improve preventively
         
-        # Combined reward (typically -100 to +100 range)
-        reward = infection_reward - cost_penalty - human_penalty - explosion_penalty + control_bonus
+        elif risk == 'low':
+            if coverage == 'excellent':
+                reward = 90.0   # Very good, slightly high
+            elif coverage == 'good':
+                reward = 100.0  # PERFECT! Proper response
+            elif coverage == 'fair':
+                reward = 50.0   # Not enough
+            else:  # poor
+                reward = -50.0  # BAD! Outbreak with poor coverage
         
-        # Clip to reasonable range to prevent extreme values
-        reward = max(-200.0, min(200.0, reward))
+        elif risk == 'moderate':
+            if coverage == 'excellent':
+                reward = 100.0  # PERFECT! Strong response
+            elif coverage == 'good':
+                reward = 90.0   # Good but could be higher
+            elif coverage == 'fair':
+                reward = 20.0   # Barely adequate
+            else:  # poor
+                reward = -100.0 # TERRIBLE!
         
-        return float(reward)
+        elif risk == 'high':
+            if coverage == 'excellent':
+                reward = 100.0  # PERFECT! Emergency response
+            elif coverage == 'good':
+                reward = 60.0   # Not enough
+            elif coverage == 'fair':
+                reward = -30.0  # Inadequate
+            else:  # poor
+                reward = -150.0 # DISASTER!
+        
+        else:  # critical
+            if coverage == 'excellent':
+                reward = 100.0  # PERFECT! Maximum response
+            elif coverage == 'good':
+                reward = 20.0   # Not enough
+            else:
+                reward = -200.0 # CATASTROPHIC!
+        
+        # MINIMAL cost for vaccination to allow learning
+        cost = vaccination_pct * 5.0  # Further reduced - minimal cost differentiation
+        
+        # LIGHT PENALTY for over-vaccination when safe
+        over_vaccination_penalty = 0.0
+        if risk == 'safe' and current_coverage > 0.80:
+            # Lightly penalize going above 80% when safe
+            if current_coverage > 0.90:
+                over_vaccination_penalty = 40.0  # Light penalty for 90%+ when safe
+            elif current_coverage > 0.85:
+                over_vaccination_penalty = 20.0  # Very light penalty for 85-90%
+        
+        # VERY STRONG BONUS for optimal coverage (70-80% range)
+        optimal_bonus = 0.0
+        if 0.65 <= current_coverage <= 0.85:
+            if risk in ['safe', 'low']:
+                optimal_bonus = 100.0  # MASSIVE reward for optimal range when safe/low risk
+        
+        # Bonus for improvement
+        if new_infections < current_infections:
+            improvement_bonus = 20.0
+        else:
+            improvement_bonus = 0.0
+        
+        # Total reward
+        total_reward = reward - cost - over_vaccination_penalty + improvement_bonus + optimal_bonus
+        
+        return float(total_reward)
     
     def _get_observation(self) -> np.ndarray:
         """

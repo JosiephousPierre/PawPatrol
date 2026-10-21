@@ -31,8 +31,11 @@ def calculate_risk_scores(simulation_results: List[Dict]) -> List[Dict]:
         R_i = I^_i(T) / N_i
     
     Where:
-        I^_i(T) = Total predicted infected (dogs + cats + humans)
+        I^_i(T) = Total FINAL infected (dogs + cats + humans) AFTER simulation
         N_i = Total population (dogs + cats + humans)
+    
+    The risk level represents the situation AFTER simulation runs,
+    which is what users see in results and what drives next actions.
     
     Args:
         simulation_results: List of municipality simulation results
@@ -43,8 +46,8 @@ def calculate_risk_scores(simulation_results: List[Dict]) -> List[Dict]:
     risk_scores = []
     
     for result in simulation_results:
-        # Get predicted infected: I^_i(T)
-        predicted_infected = result['totalPredictedInfected']
+        # ✅ Use FINAL infected count (after simulation) - this is what users see!
+        predicted_infected = result.get('totalPredictedInfected', 0)
         
         # Get total population: N_i (should be in result now)
         total_population = result.get('totalPopulation', 0)

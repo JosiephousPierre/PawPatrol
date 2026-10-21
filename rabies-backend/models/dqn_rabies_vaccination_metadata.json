@@ -1,0 +1,51 @@
+{
+  "model_type": "DQN",
+  "version": "1.0",
+  "created_at": "2026-10-21T19:58:16.810290",
+  "config": {
+    "learning_rate": 0.001,
+    "total_timesteps": 1000000,
+    "batch_size": 128,
+    "gamma": 0.99,
+    "net_arch": [
+      64,
+      64
+    ]
+  },
+  "training_metrics": {
+    "total_episodes": 38172,
+    "total_steps": 1000000,
+    "mean_reward": 1811.329345703125,
+    "std_reward": 2173.95703125,
+    "mean_episode_length": 26.196845855600966,
+    "last_100_mean_reward": 2240.6875
+  },
+  "eval_metrics": {
+    "mean_reward": 2571.5375,
+    "std_reward": 1428.1405989848306,
+    "n_episodes": 20,
+    "success_rate": 0.65,
+    "episode_rewards": [
+      -194.25,
+      3069.75,
+      -1804.25,
+      3077.25,
+      -4547.25,
+      3545.75,
+      3535.75,
+      2608.25,
+      -2681.75,
+      2958.25,
+      -194.25,
+      3147.25,
+      3279.75,
+      3029.75,
+      3117.25,
+      3297.25,
+      2468.25,
+      3309.75,
+      -1350.0,
+      -2681.75
+    ]
+  }
+}

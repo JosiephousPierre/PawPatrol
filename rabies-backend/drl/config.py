@@ -177,7 +177,7 @@ STANDARD_CONFIG = DRLConfig(
 
 # Extended training (for best performance)
 EXTENDED_CONFIG = DRLConfig(
-    total_timesteps=500000,
+    total_timesteps=1000000,  # 1 MILLION steps for much better learning!
     buffer_size=200000,
     learning_starts=5000,
     batch_size=128,

@@ -58,9 +58,10 @@ export async function getDRLRecommendations(municipalities) {
 /**
  * Format DRL recommendation for display
  * @param {Object} recommendation - Raw DRL recommendation
+ * @param {string} actualRiskLevel - Actual risk level from simulation (optional)
  * @returns {Object} Formatted recommendation
  */
-export function formatDRLRecommendation(recommendation) {
+export function formatDRLRecommendation(recommendation, actualRiskLevel = null) {
   return {
     municipalityId: recommendation.municipality_id,
     municipalityName: recommendation.municipality_name,
@@ -70,24 +71,42 @@ export function formatDRLRecommendation(recommendation) {
     qValues: recommendation.q_values || {},
     source: recommendation.source,
     action: recommendation.action,
-    // Determine priority based on recommendation
-    priority: determinePriority(recommendation.recommended_vaccination),
-    // Icon based on vaccination level
+    // ✅ Use actual risk level if provided, otherwise infer from vaccination
+    priority: actualRiskLevel ? mapRiskToPriority(actualRiskLevel) : determinePriority(recommendation.recommended_vaccination),
+    // Icon based on priority
     icon: getVaccinationIcon(recommendation.recommended_vaccination)
   }
 }
 
 /**
+ * Map risk level to priority
+ * @param {string} riskLevel - Risk level (safe, low, moderate, high, critical)
+ * @returns {string} Priority level
+ */
+function mapRiskToPriority(riskLevel) {
+  const riskToPriority = {
+    'critical': 'Critical',
+    'high': 'High',
+    'moderate': 'Medium',
+    'low': 'Low',
+    'safe': 'Monitor'
+  }
+  return riskToPriority[riskLevel] || 'Monitor'
+}
+
+/**
  * Determine priority level from vaccination recommendation
+ * FALLBACK: Only used when actual risk level is not available
  * @param {number} vaccinationPct - Vaccination percentage (0-1)
  * @returns {string} Priority level
  */
 function determinePriority(vaccinationPct) {
-  if (vaccinationPct >= 0.9) return 'Critical'
-  if (vaccinationPct >= 0.8) return 'High'
-  if (vaccinationPct >= 0.7) return 'Medium'
-  if (vaccinationPct >= 0.5) return 'Low'
-  return 'Monitor'
+  // More nuanced priority based on vaccination recommendation
+  if (vaccinationPct >= 0.95) return 'Critical'   // 95%+ emergency
+  if (vaccinationPct >= 0.85) return 'High'       // 85-95% high priority
+  if (vaccinationPct >= 0.70) return 'Medium'     // 70-85% moderate
+  if (vaccinationPct >= 0.50) return 'Low'        // 50-70% low
+  return 'Monitor'                                 // <50% just monitor
 }
 
 /**

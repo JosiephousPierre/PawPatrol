@@ -211,6 +211,16 @@ async def run_simulation(request: SimulationRequest):
         # Calculate risk scores using paper's formula: R_i = I^_i(T) / N_i
         risk_scores = calculate_risk_scores(simulation_results)
         
+        # DEBUG: Log risk calculation details
+        print(f"\n🔍 Risk Calculation Details:")
+        for score in risk_scores[:1]:  # Just first municipality
+            print(f"   Municipality: {score['municipalityName']}")
+            print(f"   Predicted Infected: {score['predictedInfected']}")
+            print(f"   Total Population: {score['totalPopulation']}")
+            print(f"   Risk Score: {score['riskScore']:.6f} ({score['riskScore']*100:.3f}%)")
+            risk_level = categorize_risk_level(score['riskScore'])
+            print(f"   Risk Level: {risk_level.upper()}")
+        
         # Categorize risk levels
         risk_levels = categorize_risk_levels(risk_scores)
         

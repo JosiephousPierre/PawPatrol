@@ -842,30 +842,6 @@
                   </template>
                 </Column>
 
-                <Column field="comparison" header="vs Current">
-                  <template #body="slotProps">
-                    <div v-if="slotProps.data.comparison" class="text-xs">
-                      <div 
-                        class="px-2 py-1 rounded font-medium"
-                        :class="{
-                          'bg-green-100 text-green-800': slotProps.data.comparison.isOptimal,
-                          'bg-yellow-100 text-yellow-800': slotProps.data.comparison.shouldIncrease,
-                          'bg-blue-100 text-blue-800': slotProps.data.comparison.shouldDecrease
-                        }"
-                      >
-                        <span v-if="slotProps.data.comparison.isOptimal">✓ Optimal</span>
-                        <span v-else-if="slotProps.data.comparison.shouldIncrease">
-                          ↑ +{{ Math.abs(slotProps.data.comparison.difference) }}%
-                        </span>
-                        <span v-else-if="slotProps.data.comparison.shouldDecrease">
-                          ↓ {{ slotProps.data.comparison.difference }}%
-                        </span>
-                      </div>
-                      <p class="text-muted-blue mt-1">{{ slotProps.data.comparison.message }}</p>
-                    </div>
-                  </template>
-                </Column>
-
                 <Column field="explanation" header="AI Reasoning">
                   <template #body="slotProps">
                     <Button 
@@ -1196,10 +1172,27 @@ const municipalityAnalysis = computed(() => {
     // Calculate Infection Rate using FINAL (PREDICTED) values and FINAL population
     const infectionRate = totalAnimals > 0 ? ((infectedDogs + infectedCats) / totalAnimals) * 100 : 0
     
+    // ✅ CRITICAL FIX: Calculate CORRECT risk level based on actual infection rate
+    // The backend's risk level is wrong, so calculate it ourselves
+    let correctRiskLevel = 'safe'
+    if (infectionRate >= 10.0) {
+      correctRiskLevel = 'critical'  // >= 10%
+    } else if (infectionRate >= 5.0) {
+      correctRiskLevel = 'high'      // 5-10%
+    } else if (infectionRate >= 1.0) {
+      correctRiskLevel = 'moderate'  // 1-5%
+    } else if (infectionRate >= 0.1) {
+      correctRiskLevel = 'low'       // 0.1-1%
+    } else if (infectionRate >= 0.01) {
+      correctRiskLevel = 'safe'      // < 0.1%
+    } else {
+      correctRiskLevel = 'safe'      // < 0.01%
+    }
+    
     return {
       id: municipality.id,
       name: municipality.name,
-      riskLevel: municipality.riskLevel || 'safe',
+      riskLevel: correctRiskLevel,  // ✅ Use calculated risk level based on actual infection rate
       targetCoverage: displayedTargetCoverage,  // Now shows FINAL coverage (after simulation)
       infectionRate: infectionRate,
       vaccinatedDogs: finalVaccinatedDogs,  // Show FINAL count from simulation
@@ -1417,23 +1410,73 @@ const fetchDRLRecommendations = async () => {
   drlError.value = null
   
   try {
-    // Get municipalities data with PREDICTED infections (if available from simulation)
-    const municipalitiesData = municipalities.value.map(m => ({
-      id: m.id,
-      name: m.name,
-      humanPopulation: m.humanPopulation,
-      dogPopulation: m.dogPopulation,
-      catPopulation: m.catPopulation,
-      // ✅ FIX: Use predicted infections if available, otherwise use current
-      infectedDogs: m.predictedInfectedDogs ?? m.infectedDogs ?? 0,
-      infectedCats: m.predictedInfectedCats ?? m.infectedCats ?? 0,
-      infectedHumans: m.predictedInfectedHumans ?? m.infectedHumans ?? 0,
-      vaccinatedDogs: m.vaccinatedDogs || 0,
-      populationDensity: m.populationDensity,
-      // riskLevel is already updated by simulation, so just use it
-      riskLevel: m.riskLevel || 'safe',
-      connectedMunicipalities: m.connectedMunicipalities || []
-    }))
+    // ✅ Use POST-SIMULATION data - DRL should see results AFTER simulation
+    // to recommend: "Given THIS current situation, what should you do NOW?"
+    
+    const municipalitiesData = municipalities.value.map(m => {
+      // Get POST-SIMULATION results
+      const munResult = simulationResults.value.municipalities?.find(r => r.id === m.id)
+      
+      if (!munResult) {
+        // Fallback to initial data if no simulation results
+        return {
+          id: m.id,
+          name: m.name,
+          humanPopulation: m.humanPopulation,
+          dogPopulation: m.dogPopulation,
+          catPopulation: m.catPopulation,
+          infectedDogs: m.infectedDogs ?? 0,
+          infectedCats: m.infectedCats ?? 0,
+          infectedHumans: m.infectedHumans ?? 0,
+          vaccinatedDogs: m.vaccinatedDogs ?? 0,
+          populationDensity: m.populationDensity,
+          riskLevel: m.riskLevel || 'safe',
+          connectedMunicipalities: m.connectedMunicipalities || []
+        }
+      }
+      
+      // ✅ Use POST-SIMULATION (FINAL) data for DRL
+      const finalDogPop = munResult.finalDogPopulation ?? m.dogPopulation
+      const finalCatPop = munResult.finalCatPopulation ?? m.catPopulation
+      const finalInfectedDogs = munResult.finalInfectedDogs ?? munResult.predictedInfectedDogs ?? 0
+      const finalInfectedCats = munResult.finalInfectedCats ?? munResult.predictedInfectedCats ?? 0
+      const finalInfectedHumans = munResult.finalInfectedHumans ?? munResult.predictedInfectedHumans ?? 0
+      const finalVaccinatedDogs = munResult.vaccinatedDogs ?? 0
+      
+      // ✅ CRITICAL FIX: Calculate correct risk level based on actual infection rate
+      const totalAnimals = finalDogPop + finalCatPop
+      const totalInfected = finalInfectedDogs + finalInfectedCats
+      const actualInfectionRate = totalAnimals > 0 ? totalInfected / totalAnimals : 0
+      
+      // Calculate risk level using correct thresholds
+      let correctRiskLevel = 'safe'
+      if (actualInfectionRate >= 0.10) {
+        correctRiskLevel = 'critical'  // >= 10%
+      } else if (actualInfectionRate >= 0.05) {
+        correctRiskLevel = 'high'      // 5-10%
+      } else if (actualInfectionRate >= 0.01) {
+        correctRiskLevel = 'moderate'  // 1-5%
+      } else if (actualInfectionRate >= 0.001) {
+        correctRiskLevel = 'low'       // 0.1-1%
+      } else {
+        correctRiskLevel = 'safe'      // < 0.1%
+      }
+      
+      return {
+        id: m.id,
+        name: m.name,
+        humanPopulation: munResult.finalHumanPopulation ?? m.humanPopulation,
+        dogPopulation: finalDogPop,
+        catPopulation: finalCatPop,
+        infectedDogs: finalInfectedDogs,
+        infectedCats: finalInfectedCats,
+        infectedHumans: finalInfectedHumans,
+        vaccinatedDogs: finalVaccinatedDogs,
+        populationDensity: m.populationDensity,
+        riskLevel: correctRiskLevel,  // ✅ Use calculated risk level, not backend's wrong one
+        connectedMunicipalities: m.connectedMunicipalities || []
+      }
+    })
     
     console.log('🤖 DRL Input Data:', {
       municipalityCount: municipalitiesData.length,
@@ -1456,7 +1499,13 @@ const fetchDRLRecommendations = async () => {
     if (result.success && result.drl_available) {
       // Format recommendations and add comparison with current coverage
       drlRecommendations.value = result.recommendations.map(rec => {
-        const formatted = formatDRLRecommendation(rec)
+        // Find the municipality to get its risk level
+        const municipality = municipalities.value.find(m => m.id === rec.municipality_id)
+        const munAnalysis = municipalityAnalysis.value.find(m => m.id === rec.municipality_id)
+        const actualRiskLevel = munAnalysis?.riskLevel || municipality?.riskLevel || 'safe'
+        
+        // Format with actual risk level for correct priority
+        const formatted = formatDRLRecommendation(rec, actualRiskLevel)
         
         // Find current municipality to compare
         const currentMun = municipalities.value.find(m => m.id === rec.municipality_id)

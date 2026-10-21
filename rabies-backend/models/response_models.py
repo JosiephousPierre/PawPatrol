@@ -20,6 +20,12 @@ class MunicipalityResult(BaseModel):
     predictedInfectedHumans: int = Field(description="I^_i(T) for humans")
     totalPredictedInfected: int = Field(description="Total I^_i(T)")
     
+    # Initial infection counts (for risk calculation)
+    initialInfectedDogs: Optional[int] = Field(default=None, description="Initial infected dogs (before simulation)")
+    initialInfectedCats: Optional[int] = Field(default=None, description="Initial infected cats (before simulation)")
+    initialInfectedHumans: Optional[int] = Field(default=None, description="Initial infected humans (before simulation)")
+    totalInitialInfected: Optional[int] = Field(default=None, description="Total initial infected (before simulation)")
+    
     # Population compartments
     susceptibleDogs: int = Field(description="Susceptible dogs remaining")
     recoveredDogs: int = Field(default=0, description="DEPRECATED - SI model has no recovery")

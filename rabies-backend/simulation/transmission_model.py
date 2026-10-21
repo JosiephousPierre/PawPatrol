@@ -1111,6 +1111,15 @@ def run_fractional_stochastic_simulation(
             'predictedCatPopulation': int(round(state.cats.total)),
             'predictedHumanPopulation': int(round(state.humans.total)),
             'totalPopulation': int(total_population),
+            # ✅ CRITICAL FIX: Store INITIAL infected for risk calculation
+            # Risk level should be based on outbreak severity BEFORE simulation
+            # Not the predicted state AFTER simulation runs
+            'initialInfectedDogs': int(round(state.dogs.initial_infected)),
+            'initialInfectedCats': int(round(state.cats.initial_infected)),
+            'initialInfectedHumans': int(round(state.humans.initial_infected)),
+            'totalInitialInfected': int(round(
+                state.dogs.initial_infected + state.cats.initial_infected + state.humans.initial_infected
+            )),
             # Compartments
             'susceptibleDogs': int(round(state.dogs.susceptible)),
             'vaccinatedDogs': int(round(state.dogs.vaccinated)),

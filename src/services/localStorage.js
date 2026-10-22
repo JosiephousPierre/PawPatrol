@@ -1,16 +1,30 @@
 // Local Storage Service for PAWPATROL
 
+import { 
+  updateRegionalRiskData, 
+  mergeWithRegionalRiskData 
+} from './regionalRiskSync'
+
 const STORAGE_KEYS = {
   MUNICIPALITIES: 'pawpatrol_municipalities',
   SIMULATION_SETTINGS: 'pawpatrol_simulation_settings',
   SIMULATION_RESULTS: 'pawpatrol_simulation_results',
-  VACCINATION_RECOMMENDATIONS: 'pawpatrol_vaccination_recommendations'
+  VACCINATION_RECOMMENDATIONS: 'pawpatrol_vaccination_recommendations',
+  // NEW: Centralized regional risk data (shared across all municipalities)
+  REGIONAL_RISK_DATA: 'pawpatrol_regional_risk_data'
 }
 
 export const loadFromStorage = () => {
   try {
+    // Load user's own municipality data
+    let municipalities = JSON.parse(localStorage.getItem(STORAGE_KEYS.MUNICIPALITIES)) || []
+    
+    // NEW: Merge with centralized regional risk data
+    // This ensures all municipalities see the latest regional risk map
+    municipalities = mergeWithRegionalRiskData(municipalities)
+    
     return {
-      municipalities: JSON.parse(localStorage.getItem(STORAGE_KEYS.MUNICIPALITIES)) || [],
+      municipalities,
       simulationSettings: JSON.parse(localStorage.getItem(STORAGE_KEYS.SIMULATION_SETTINGS)) || {},
       simulationResults: JSON.parse(localStorage.getItem(STORAGE_KEYS.SIMULATION_RESULTS)) || {},
       vaccinationRecommendations: JSON.parse(localStorage.getItem(STORAGE_KEYS.VACCINATION_RECOMMENDATIONS)) || []
@@ -30,6 +44,11 @@ export const saveToStorage = (data) => {
   try {
     if (data.municipalities) {
       localStorage.setItem(STORAGE_KEYS.MUNICIPALITIES, JSON.stringify(data.municipalities))
+      
+      // NOTE: Regional risk data sync is now ONLY done when explicitly requested
+      // via updateRegionalRiskFromManagement() - NOT automatically on every save
+      // This ensures Regional Risk Map shows user-inputted baseline data,
+      // not simulation predictions
     }
     if (data.simulationSettings) {
       localStorage.setItem(STORAGE_KEYS.SIMULATION_SETTINGS, JSON.stringify(data.simulationSettings))
@@ -43,6 +62,17 @@ export const saveToStorage = (data) => {
   } catch (error) {
     console.error('Error saving to localStorage:', error)
   }
+}
+
+/**
+ * Update regional risk data from Municipality Management page
+ * This should ONLY be called when users explicitly save data via Municipality Management
+ * NOT when simulation results are saved
+ */
+export const updateRegionalRiskFromManagement = (municipalities) => {
+  console.log('📍 Updating Regional Risk Map from Municipality Management data...')
+  updateRegionalRiskData(municipalities)
+  console.log('✅ Regional Risk Map updated with baseline data')
 }
 
 export const initializeDummyData = () => {
@@ -103,7 +133,7 @@ export const initializeDummyData = () => {
       name: 'Pantukan',
       latitude: 7.127024,
       longitude: 125.897221,
-      connectedMunicipalities: ['nabunturan', 'new-bataan', 'mabini'],
+      connectedMunicipalities: ['nabunturan', 'new_bataan', 'mabini'],
       dogPopulation: 1800,
       catPopulation: 950,
       humanPopulation: 91312,
@@ -133,7 +163,7 @@ export const initializeDummyData = () => {
       lastUpdated: null
     },
     {
-      id: 'new-bataan',
+      id: 'new_bataan',
       name: 'New Bataan',
       latitude: 7.5467,
       longitude: 126.1167,
@@ -171,7 +201,7 @@ export const initializeDummyData = () => {
       name: 'Montevista',
       latitude: 7.6956,
       longitude: 125.9889,
-      connectedMunicipalities: ['monkayo', 'new-bataan', 'compostela'],
+      connectedMunicipalities: ['monkayo', 'new_bataan', 'compostela'],
       dogPopulation: 900,
       catPopulation: 450,
       humanPopulation: 46581,

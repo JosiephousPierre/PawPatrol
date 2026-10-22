@@ -175,41 +175,27 @@
               <div class="border-t border-background pt-6">
                 <h4 class="text-md font-semibold text-dark-blue mb-4 flex items-center">
                   <i class="pi pi-chart-line text-primary mr-2"></i>
-                  Risk Assessment
+                  Risk Assessment (Automatic)
                 </h4>
                 <div>
                   <label class="block text-sm font-medium text-dark-blue mb-2">
                     Current Risk Level
                   </label>
-                  <Dropdown 
-                    v-model="formData.riskLevel" 
-                    :options="riskLevelOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="Select risk level"
-                    class="w-full"
-                  >
-                    <template #value="slotProps">
-                      <span 
-                        v-if="slotProps.value"
-                        class="px-2 py-1 rounded text-xs font-medium"
-                        :class="getRiskBadgeClass(slotProps.value)"
-                      >
-                        {{ getRiskLabel(slotProps.value) }}
-                      </span>
-                      <span v-else>Select risk level</span>
-                    </template>
-                    <template #option="slotProps">
-                      <span 
-                        class="px-2 py-1 rounded text-xs font-medium"
-                        :class="getRiskBadgeClass(slotProps.option.value)"
-                      >
-                        {{ slotProps.option.label }}
-                      </span>
-                    </template>
-                  </Dropdown>
-                  <small class="text-muted-blue">
-                    Based on current infection rates and vaccination coverage
+                  <!-- 🔥 READ-ONLY: Automatically calculated based on infections + vaccination -->
+                  <div class="p-4 bg-background rounded-lg border border-light-blue">
+                    <span 
+                      class="px-3 py-2 rounded text-sm font-semibold inline-block"
+                      :class="getRiskBadgeClass(autoCalculatedRiskLevel)"
+                    >
+                      {{ getRiskLabel(autoCalculatedRiskLevel).toUpperCase() }}
+                    </span>
+                    <p class="text-xs text-muted-blue mt-2">
+                      <i class="pi pi-info-circle mr-1"></i>
+                      Automatically calculated from infection counts and vaccination coverage
+                    </p>
+                  </div>
+                  <small class="text-muted-blue mt-2">
+                    Based on infection thresholds and vaccination coverage
                   </small>
                 </div>
               </div>
@@ -377,6 +363,58 @@ const vaccinationCoverage = computed(() => {
   return Math.round((formData.value.vaccinatedDogs / formData.value.dogPopulation) * 100)
 })
 
+// 🔥 AUTOMATIC RISK LEVEL CALCULATION
+// Based on infection thresholds and vaccination coverage
+const autoCalculatedRiskLevel = computed(() => {
+  const dogs = formData.value.infectedDogs || 0
+  const cats = formData.value.infectedCats || 0
+  const humans = formData.value.infectedHumans || 0
+  const coverage = vaccinationCoverage.value
+  
+  // Calculate base risk from infection counts (using your table)
+  let baseRisk = 'safe'
+  
+  // Check Critical: dogs 10+, cats 5+, humans 2+
+  if (dogs >= 10 || cats >= 5 || humans >= 2) {
+    baseRisk = 'critical'
+  }
+  // Check High: dogs 6-9, cats 3-4, no human requirement
+  else if (dogs >= 6 || cats >= 3) {
+    baseRisk = 'high'
+  }
+  // Check Moderate: dogs 3-5, cats 2, humans 1
+  else if (dogs >= 3 || cats >= 2 || humans >= 1) {
+    baseRisk = 'moderate'
+  }
+  // Check Low: dogs 1-2, cats 1, no humans
+  else if (dogs >= 1 || cats >= 1) {
+    baseRisk = 'low'
+  }
+  // Safe: all zero
+  else {
+    baseRisk = 'safe'
+  }
+  
+  // Adjust risk based on vaccination coverage
+  // High coverage (80%+) can downgrade risk by one level
+  // Low coverage (< 40%) can upgrade risk by one level
+  if (coverage >= 80 && baseRisk !== 'safe') {
+    const riskLevels = ['safe', 'low', 'moderate', 'high', 'critical']
+    const currentIndex = riskLevels.indexOf(baseRisk)
+    if (currentIndex > 0) {
+      return riskLevels[currentIndex - 1] // Downgrade by 1 level
+    }
+  } else if (coverage < 40 && baseRisk !== 'critical') {
+    const riskLevels = ['safe', 'low', 'moderate', 'high', 'critical']
+    const currentIndex = riskLevels.indexOf(baseRisk)
+    if (currentIndex < riskLevels.length - 1) {
+      return riskLevels[currentIndex + 1] // Upgrade by 1 level
+    }
+  }
+  
+  return baseRisk
+})
+
 const lastUpdated = computed(() => {
   const municipality = appStore.municipalities.find(m => m.id === currentMunicipality.value?.id)
   if (municipality?.lastUpdated) {
@@ -440,6 +478,7 @@ const saveData = async () => {
     // Update municipality using store method
     const updateData = {
       ...formData.value,
+      riskLevel: autoCalculatedRiskLevel.value,  // 🔥 Use auto-calculated risk level
       lastUpdated: new Date().toISOString()
     }
     

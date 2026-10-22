@@ -136,6 +136,8 @@ export function useSimulationEngine() {
       appStore.isSimulationRunning = false
       appStore.saveAllData()
       
+      console.log('✅ Simulation complete - results saved (Regional Risk Map NOT updated)')
+      
     } catch (error) {
       appStore.isSimulationRunning = false
       simulationLogger.addSimulationStateLog('error', { error: error.message })

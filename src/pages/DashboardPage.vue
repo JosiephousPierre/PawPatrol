@@ -138,8 +138,21 @@
       <Card class="bg-white">
         <template #header>
           <div class="px-6 py-4 border-b border-light-blue">
-            <h3 class="text-lg font-semibold text-dark-blue">Regional Risk Map</h3>
-            <p class="text-muted-blue text-sm">Interactive visualization of rabies risk across Davao de Oro</p>
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-dark-blue">Regional Risk Map</h3>
+                <p class="text-muted-blue text-sm">Interactive visualization of rabies risk across Davao de Oro</p>
+              </div>
+              <!-- NEW: Refresh Button -->
+              <button 
+                @click="refreshRegionalData"
+                class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors"
+                title="Refresh regional risk data from all municipalities"
+              >
+                <i class="pi pi-refresh" :class="{ 'pi-spin': isRefreshing }"></i>
+                <span class="text-sm">Refresh</span>
+              </button>
+            </div>
           </div>
         </template>
         <template #content>
@@ -197,7 +210,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores'
 import { Chart, registerables } from 'chart.js'
@@ -218,6 +231,7 @@ let map = null
 // Loading states
 const isLoadingData = ref(true)
 const isLoadingCharts = ref(true)
+const isRefreshing = ref(false)
 
 const riskDistribution = computed(() => {
   const municipalities = appStore.municipalities
@@ -318,7 +332,23 @@ const navigateTo = (path) => {
 
 // Map initialization
 const initializeMap = () => {
-  if (appStore.municipalities.length === 0) return
+  if (appStore.municipalities.length === 0) {
+    console.log('⚠️ No municipalities data, skipping map initialization')
+    return
+  }
+
+  // 🔥 CRITICAL FIX: Remove existing map first to prevent "already initialized" error
+  if (map) {
+    console.log('🗑️ Removing existing map before re-initialization')
+    try {
+      map.remove()
+    } catch (e) {
+      console.warn('Error removing map:', e)
+    }
+    map = null
+  }
+
+  console.log('🗺️ Initializing map with', appStore.municipalities.length, 'municipalities')
 
   // Create map centered on Davao de Oro (zoom disabled - fixed view)
   map = L.map('dashboard-map', {
@@ -343,7 +373,21 @@ const initializeMap = () => {
   const originalZoom = 9
 
   // Add municipality markers (DYNAMIC - Based on current data)
-  appStore.municipalities.forEach(municipality => {
+  console.log('🗺️ Creating markers for', appStore.municipalities.length, 'municipalities')
+  
+  // 🔥 ONLY show municipalities with regional data (saved in Municipality Management)
+  const municipalitiesWithData = appStore.municipalities.filter(m => m.hasRegionalData !== false)
+  console.log('🗺️ Showing', municipalitiesWithData.length, 'municipalities with regional data')
+  
+  municipalitiesWithData.forEach(municipality => {
+    console.log(`📍 Marker for ${municipality.name}:`, {
+      id: municipality.id,
+      riskLevel: municipality.riskLevel,
+      infectedDogs: municipality.infectedDogs,
+      vaccinatedDogs: municipality.vaccinatedDogs,
+      lastUpdated: municipality.lastUpdated
+    })
+    
     const riskColor = getRiskColor(municipality.riskLevel)
     
     // Create circle marker
@@ -391,7 +435,32 @@ const getRiskColor = (riskLevel) => {
   return colors[riskLevel] || colors.safe
 }
 
+// NEW: Refresh regional risk data
+const refreshRegionalData = () => {
+  console.log('🔄 User requested regional risk data refresh')
+  isRefreshing.value = true
+  
+  // Refresh the data from regional storage
+  appStore.refreshRegionalRiskData()
+  
+  // Reinitialize the map with updated data
+  if (map) {
+    map.remove() // Remove old map
+    map = null
+  }
+  
+  setTimeout(() => {
+    initializeMap() // Create new map with fresh data
+    isRefreshing.value = false
+    console.log('✅ Regional risk data refreshed successfully')
+  }, 500) // Small delay for better UX
+}
+
 onMounted(() => {
+  // Refresh regional risk data to get latest from all municipalities
+  console.log('🔄 Dashboard: Refreshing regional risk data...')
+  appStore.refreshRegionalRiskData()
+  
   // Simulate loading delay for better UX
   setTimeout(() => {
     isLoadingData.value = false
@@ -458,6 +527,32 @@ onMounted(() => {
     }, 100) // Small delay to let Vue render the canvas and map div
   }, 500) // Reduced from 800ms
 })
+
+// Watch for changes in municipalities data (cross-tab sync)
+// This ensures the map updates when other municipalities save baseline data
+watch(
+  () => appStore.municipalities,
+  (newMunicipalities, oldMunicipalities) => {
+    console.log('👀 [DASHBOARD] Watch triggered - municipalities changed')
+    console.log('👀 [DASHBOARD] Old count:', oldMunicipalities?.length, 'New count:', newMunicipalities.length)
+    
+    // Only update if we have data and the map container exists in DOM
+    if (newMunicipalities.length > 0 && document.getElementById('dashboard-map')) {
+      console.log('👀 [DASHBOARD] Reinitializing map with updated data...')
+      console.log('👀 [DASHBOARD] Sample data MACO:', newMunicipalities.find(m => m.id === 'maco'))
+      
+      // 🔥 CRITICAL: Wait for Vue reactivity to complete before reinitializing map
+      setTimeout(() => {
+        console.log('👀 [DASHBOARD] Now initializing map with MACO:', appStore.municipalities.find(m => m.id === 'maco'))
+        initializeMap()
+        console.log('✅ [DASHBOARD] Map reinitialized with latest regional data')
+      }, 200) // Increased delay to ensure data is fully updated
+    } else {
+      console.log('⚠️ [DASHBOARD] Skip - no data or map element not in DOM')
+    }
+  },
+  { deep: true } // Watch for nested changes in municipalities array
+)
 </script>
 
 <style scoped>
@@ -490,5 +585,19 @@ onMounted(() => {
 
 :deep(.p-tooltip-left .p-tooltip-arrow) {
   border-left-color: #243C4C !important;
+}
+
+/* NEW: Refresh button spin animation */
+.pi-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

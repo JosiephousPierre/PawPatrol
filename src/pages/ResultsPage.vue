@@ -1172,21 +1172,44 @@ const municipalityAnalysis = computed(() => {
     // Calculate Infection Rate using FINAL (PREDICTED) values and FINAL population
     const infectionRate = totalAnimals > 0 ? ((infectedDogs + infectedCats) / totalAnimals) * 100 : 0
     
-    // ✅ CRITICAL FIX: Calculate CORRECT risk level based on actual infection rate
-    // The backend's risk level is wrong, so calculate it ourselves
+    // 🔥 CORRECT RISK LEVEL: Based on infection count thresholds (not percentages)
+    // Using the same logic as Municipality Management
     let correctRiskLevel = 'safe'
-    if (infectionRate >= 10.0) {
-      correctRiskLevel = 'critical'  // >= 10%
-    } else if (infectionRate >= 5.0) {
-      correctRiskLevel = 'high'      // 5-10%
-    } else if (infectionRate >= 1.0) {
-      correctRiskLevel = 'moderate'  // 1-5%
-    } else if (infectionRate >= 0.1) {
-      correctRiskLevel = 'low'       // 0.1-1%
-    } else if (infectionRate >= 0.01) {
-      correctRiskLevel = 'safe'      // < 0.1%
-    } else {
-      correctRiskLevel = 'safe'      // < 0.01%
+    
+    // Check Critical: dogs 10+, cats 5+, humans 2+
+    if (infectedDogs >= 10 || infectedCats >= 5 || infectedHumans >= 2) {
+      correctRiskLevel = 'critical'
+    }
+    // Check High: dogs 6-9, cats 3-4, no human requirement
+    else if (infectedDogs >= 6 || infectedCats >= 3) {
+      correctRiskLevel = 'high'
+    }
+    // Check Moderate: dogs 3-5, cats 2, humans 1
+    else if (infectedDogs >= 3 || infectedCats >= 2 || infectedHumans >= 1) {
+      correctRiskLevel = 'moderate'
+    }
+    // Check Low: dogs 1-2, cats 1, no humans
+    else if (infectedDogs >= 1 || infectedCats >= 1) {
+      correctRiskLevel = 'low'
+    }
+    // Safe: all zero
+    else {
+      correctRiskLevel = 'safe'
+    }
+    
+    // Adjust risk based on vaccination coverage (same as Municipality Management)
+    if (displayedTargetCoverage >= 80 && correctRiskLevel !== 'safe') {
+      const riskLevels = ['safe', 'low', 'moderate', 'high', 'critical']
+      const currentIndex = riskLevels.indexOf(correctRiskLevel)
+      if (currentIndex > 0) {
+        correctRiskLevel = riskLevels[currentIndex - 1] // Downgrade by 1 level
+      }
+    } else if (displayedTargetCoverage < 40 && correctRiskLevel !== 'critical') {
+      const riskLevels = ['safe', 'low', 'moderate', 'high', 'critical']
+      const currentIndex = riskLevels.indexOf(correctRiskLevel)
+      if (currentIndex < riskLevels.length - 1) {
+        correctRiskLevel = riskLevels[currentIndex + 1] // Upgrade by 1 level
+      }
     }
     
     return {

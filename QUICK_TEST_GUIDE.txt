@@ -1,0 +1,109 @@
+═══════════════════════════════════════════════════════════════════════════════
+  REGIONAL RISK MAP - QUICK TEST GUIDE ✅
+═══════════════════════════════════════════════════════════════════════════════
+
+CORRECTED BEHAVIOR:
+  • Regional Risk Map shows BASELINE data (from Municipality Management)
+  • Regional Risk Map DOES NOT show simulation predictions
+  • Simulation results appear ONLY in Results page
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 1: Municipality Management Updates Regional Map ✅
+────────────────────────────────────────────────────────
+
+Step 1: Login as MACO → Go to "Municipality Management"
+Step 2: Edit baseline data:
+        - Infected Dogs: Change from 12 to 25
+        - Click "Save Data"
+Step 3: Open new tab → Login as LAAK → View "Regional Risk Map"
+Step 4: VERIFY: MACO shows 25 infected dogs ✅
+
+EXPECTED CONSOLE LOGS (MACO tab):
+  💾 Saving all data (without regional risk sync)...
+  ✅ Data saved
+  📍 Syncing regional risk data from Municipality Management...
+  📍 Updating Regional Risk Map from Municipality Management data...
+  ✅ Regional risk data updated: 11 municipalities
+
+EXPECTED CONSOLE LOGS (LAAK tab):
+  🔄 Regional risk data changed (cross-tab sync) 11 municipalities
+  ✅ Municipalities updated with latest regional risk data
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 2: Simulation Does NOT Update Regional Map ✅
+────────────────────────────────────────────────────────
+
+Step 1: Login as MACO → Dashboard
+Step 2: Run Simulation (30 days)
+        RESULT: Predicted 300 infected dogs
+Step 3: Open new tab → Login as LAAK → View "Regional Risk Map"
+Step 4: VERIFY: MACO still shows 25 infected dogs (baseline) ✅
+        NOT 300 (prediction)
+
+Step 5: In MACO tab → Go to "Results" page
+Step 6: VERIFY: Results page shows 300 predicted infected ✅
+
+EXPECTED CONSOLE LOGS (MACO simulation):
+  🚀 Simulation: Calling backend API...
+  📊 Simulation: Backend response received
+  💾 Saving all data (without regional risk sync)...
+  ✅ Data saved
+  ✅ Simulation complete - results saved (Regional Risk Map NOT updated)
+
+EXPECTED CONSOLE LOGS (LAAK tab):
+  NO NEW LOGS (no cross-tab sync triggered) ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 3: Landing Page Shows Baseline Data ✅
+────────────────────────────────────────────────────────
+
+Step 1: Open Landing Page (no login)
+Step 2: Scroll to Regional Map section
+Step 3: VERIFY: All municipalities show baseline data
+        - MACO: 25 infected (from Municipality Management)
+        - Other municipalities: Their baseline data
+
+Step 4: In another tab → MACO runs simulation → 300 predicted
+Step 5: Refresh Landing Page
+Step 6: VERIFY: MACO still shows 25 infected ✅
+        (Prediction 300 does NOT appear on map)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SUMMARY OF WHAT APPEARS WHERE:
+
+┌─────────────────────────┬──────────────────┬──────────────────────┐
+│ Location                │ Shows Baseline?  │ Shows Predictions?   │
+├─────────────────────────┼──────────────────┼──────────────────────┤
+│ Regional Risk Map       │ ✅ YES (25)      │ ❌ NO                │
+│ Landing Page Map        │ ✅ YES (25)      │ ❌ NO                │
+│ Municipality Management │ ✅ YES (25)      │ ❌ NO                │
+│ Results Page            │ ✅ YES (25)      │ ✅ YES (300)         │
+│ Dashboard Cards         │ ✅ YES (25)      │ ❌ NO                │
+└─────────────────────────┴──────────────────┴──────────────────────┘
+
+KEY POINTS:
+  • Baseline (25) = Current reality (user-inputted)
+  • Prediction (300) = Future forecast (simulation-generated)
+  • Regional Risk Map is a CURRENT STATE map, not forecast map
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING:
+
+Problem: Regional Risk Map shows prediction (300) instead of baseline (25)
+Solution: Check if you saved baseline data in Municipality Management first
+
+Problem: LAAK doesn't see MACO's updated baseline
+Solution: Make sure MACO clicked "Save Data" in Municipality Management
+
+Problem: Simulation doesn't create predictions
+Solution: This is expected - predictions show in Results page, not Regional Map
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Status: ✅ READY FOR TESTING
+Date: 2026-10-22

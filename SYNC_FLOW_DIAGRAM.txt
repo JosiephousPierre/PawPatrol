@@ -1,0 +1,174 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                  REGIONAL RISK MAP - REAL-TIME SYNC FLOW                      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+SCENARIO: MACO runs simulation, LAAK sees the update in real-time
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 1: MACO Runs Simulation                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Browser Tab 1 (MACO logged in)
+    ┌─────────────────────────────────────┐
+    │  Dashboard → Run Simulation         │
+    │  Risk: MODERATE → LOW               │
+    │  Infected: 12 → 300 dogs            │
+    └────────────────┬────────────────────┘
+                     │
+                     │ Click "Run Simulation"
+                     ▼
+    ┌─────────────────────────────────────┐
+    │  useSimulationEngine.js             │
+    │  • Calls backend API                │
+    │  • Updates municipality risk levels │
+    │  • appStore.saveAllData()           │
+    └────────────────┬────────────────────┘
+                     │
+                     ▼
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 2: Save to Storage + Sync Regional Data                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────┐
+    │  localStorage.js                    │
+    │  • saveToStorage()                  │
+    │  • updateRegionalRiskData()         │
+    └────────────────┬────────────────────┘
+                     │
+                     ▼
+    ┌─────────────────────────────────────┐
+    │  regionalRiskSync.js                │
+    │  • Merges with existing data        │
+    │  • Saves to shared key:             │
+    │    pawpatrol_regional_risk_data     │
+    │  • Dispatches events:               │
+    │    1. storage (cross-tab)           │
+    │    2. custom event (same-tab)       │
+    └────────────────┬────────────────────┘
+                     │
+                     ├──────────────────────────────────┐
+                     │                                  │
+                     ▼                                  ▼
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 3A: Cross-Tab Sync (LAAK Tab)    │ STEP 3B: Same-Tab Sync (MACO Tab)  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Browser Tab 2 (LAAK logged in)           Same Tab (MACO)
+    ┌─────────────────────────────────┐     ┌─────────────────────────────────┐
+    │  Dashboard viewing Regional Map │     │  Dashboard after simulation     │
+    │                                 │     │                                 │
+    │  👂 Listening for storage event │     │  👂 Listening for custom event  │
+    └────────────┬────────────────────┘     └────────────┬────────────────────┘
+                 │                                         │
+                 │ storage event fires                     │ custom event fires
+                 ▼                                         ▼
+    ┌─────────────────────────────────┐     ┌─────────────────────────────────┐
+    │  store → setupCrossTabSync()    │     │  store → setupCrossTabSync()    │
+    │  • Receives update notification │     │  • Receives update notification │
+    │  • Calls mergeWithRegionalData()│     │  • Calls mergeWithRegionalData()│
+    └────────────┬────────────────────┘     └────────────┬────────────────────┘
+                 │                                         │
+                 ▼                                         ▼
+    ┌─────────────────────────────────┐     ┌─────────────────────────────────┐
+    │  municipalities.value updated   │     │  municipalities.value updated   │
+    │  Vue reactivity → UI refreshes  │     │  Vue reactivity → UI refreshes  │
+    └────────────┬────────────────────┘     └────────────┬────────────────────┘
+                 │                                         │
+                 ▼                                         ▼
+    ┌─────────────────────────────────┐     ┌─────────────────────────────────┐
+    │  Regional Risk Map              │     │  Regional Risk Map              │
+    │  ✅ MACO now shows LOW          │     │  ✅ MACO now shows LOW          │
+    │  ✅ 300 infected dogs           │     │  ✅ 300 infected dogs           │
+    └─────────────────────────────────┘     └─────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 4: Landing Page Also Updates                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Browser Tab 3 (Landing Page)
+    ┌─────────────────────────────────┐
+    │  Landing Page / Regional Map    │
+    │                                 │
+    │  👂 Listening for storage event │
+    └────────────┬────────────────────┘
+                 │
+                 │ storage event fires
+                 ▼
+    ┌─────────────────────────────────┐
+    │  store → setupCrossTabSync()    │
+    │  • Auto-merges regional data    │
+    │  • municipalities.value updated │
+    └────────────┬────────────────────┘
+                 │
+                 ▼
+    ┌─────────────────────────────────┐
+    │  Map markers re-render          │
+    │  ✅ MACO circle: YELLOW (LOW)   │
+    │  ✅ Legend: Low Risk (1)        │
+    └─────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+KEY MECHANISMS:
+
+1. localStorage.setItem()
+   └→ Triggers "storage" event in OTHER tabs (cross-tab sync)
+
+2. window.dispatchEvent(CustomEvent)
+   └→ Triggers custom event in SAME tab (same-tab sync)
+
+3. store → setupCrossTabSync()
+   └→ Listens to BOTH events
+   └→ Auto-merges regional data
+   └→ Vue reactivity updates UI
+
+4. Page Load (onMounted)
+   └→ refreshRegionalRiskData()
+   └→ Ensures latest data on page load
+
+═══════════════════════════════════════════════════════════════════════════════
+
+DATA STRUCTURE IN STORAGE:
+
+localStorage key: "pawpatrol_regional_risk_data"
+
+{
+  "maco": {
+    "id": "maco",
+    "name": "Maco",
+    "riskLevel": "low",           ← UPDATED after simulation
+    "infectedDogs": 300,          ← UPDATED after simulation
+    "infectedCats": 10,           ← UPDATED after simulation
+    "infectedHumans": 0,
+    "vaccinatedDogs": 450,
+    "lastUpdated": "2026-10-22T10:30:00.000Z"  ← Timestamp
+  },
+  "laak": {
+    "id": "laak",
+    "name": "Laak",
+    "riskLevel": "safe",
+    "infectedDogs": 0,
+    "infectedCats": 0,
+    "infectedHumans": 0,
+    "vaccinatedDogs": 390,
+    "lastUpdated": "2026-10-22T09:00:00.000Z"
+  },
+  ... (9 more municipalities)
+}
+
+═══════════════════════════════════════════════════════════════════════════════
+
+BENEFITS:
+
+✅ Real-time updates (no manual refresh)
+✅ Cross-tab synchronization (different municipalities see each other)
+✅ Event-driven (efficient, no polling)
+✅ Timestamp-based conflict resolution
+✅ Preserves local demographic data while syncing risk data
+✅ Works across different browsers/sessions (via localStorage persistence)
+✅ Zero dependencies (uses native Web APIs)
+
+═══════════════════════════════════════════════════════════════════════════════

@@ -40,7 +40,7 @@
         </h1>
         
         <p class="text-xl md:text-2xl text-muted-blue mb-4 max-w-4xl mx-auto leading-relaxed animate-slide-up-delay-1">
-          A Hybrid Quantum–Classical Framework for Stochastic Network-Based Rabies Transmission Modeling with Fractional-Order Dynamics, Deep Reinforcement Learning Adaptive Control, and Multiscale Spatial Heterogeneity in Coupled Dog (Canis lupus familiaris), Cat (Felis catus), and Human Populations
+          A Decision-Support Framework for Rabies Control Using Computational Transmission Modeling and AI-Driven Intervention Selection
         </p>
         
         <p class="text-lg text-muted-blue mb-10 max-w-3xl mx-auto animate-slide-up-delay-2">
@@ -374,7 +374,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores'
 import L from 'leaflet'
@@ -445,7 +445,23 @@ const getRiskLabel = (riskLevel) => {
 
 // Initialize the Davao de Oro map with risk data
 const initializeMap = () => {
-  if (municipalities.value.length === 0) return
+  if (municipalities.value.length === 0) {
+    console.log('⚠️ [LANDING] No municipalities data, skipping map initialization')
+    return
+  }
+
+  // 🔥 CRITICAL FIX: Remove existing map first to prevent "already initialized" error
+  if (map) {
+    console.log('🗑️ [LANDING] Removing existing map before re-initialization')
+    try {
+      map.remove()
+    } catch (e) {
+      console.warn('[LANDING] Error removing map:', e)
+    }
+    map = null
+  }
+
+  console.log('🗺️ [LANDING] Initializing map with', municipalities.value.length, 'municipalities')
 
   // Create map centered on Davao de Oro (zoom disabled - fixed view)
   map = L.map('landing-map', {
@@ -470,7 +486,11 @@ const initializeMap = () => {
   const originalZoom = 9
 
   // Add municipality markers with DYNAMIC risk-based colors
-  municipalities.value.forEach(municipality => {
+  // 🔥 ONLY show municipalities with regional data (saved in Municipality Management)
+  const municipalitiesWithData = municipalities.value.filter(m => m.hasRegionalData !== false)
+  console.log('🗺️ [LANDING] Showing', municipalitiesWithData.length, 'municipalities with regional data')
+  
+  municipalitiesWithData.forEach(municipality => {
     const riskColor = getRiskColor(municipality.riskLevel || 'safe')
     
     const marker = L.circleMarker([municipality.latitude, municipality.longitude], {
@@ -507,11 +527,41 @@ const initializeMap = () => {
 }
 
 onMounted(() => {
+  // Refresh regional risk data to get latest from all municipalities
+  console.log('🔄 Landing page: Refreshing regional risk data...')
+  appStore.refreshRegionalRiskData()
+  
   // Initialize map after component is mounted
   setTimeout(() => {
     initializeMap()
   }, 300)
 })
+
+// Watch for changes in municipalities data (cross-tab sync)
+// This ensures the landing page map updates when municipalities save baseline data
+watch(
+  () => appStore.municipalities,
+  (newMunicipalities, oldMunicipalities) => {
+    console.log('👀 [LANDING] Watch triggered - municipalities changed')
+    console.log('👀 [LANDING] Old count:', oldMunicipalities?.length, 'New count:', newMunicipalities.length)
+    
+    // Only update if we have data and the map container exists in DOM
+    if (newMunicipalities.length > 0 && document.getElementById('landing-map')) {
+      console.log('👀 [LANDING] Reinitializing map with updated data...')
+      console.log('👀 [LANDING] Sample data MACO:', newMunicipalities.find(m => m.id === 'maco'))
+      
+      // 🔥 CRITICAL: Wait for Vue reactivity to complete before reinitializing map
+      setTimeout(() => {
+        console.log('👀 [LANDING] Now initializing map with MACO:', appStore.municipalities.find(m => m.id === 'maco'))
+        initializeMap()
+        console.log('✅ [LANDING] Map reinitialized with latest regional data')
+      }, 200) // Increased delay to ensure data is fully updated
+    } else {
+      console.log('⚠️ [LANDING] Skip - no data or map element not in DOM')
+    }
+  },
+  { deep: true } // Watch for nested changes in municipalities array
+)
 </script>
 
 <style scoped>

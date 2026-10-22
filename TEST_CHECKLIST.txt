@@ -1,0 +1,208 @@
+═══════════════════════════════════════════════════════════════════════════════
+  CENTRALIZED REGIONAL RISK MAP - TEST CHECKLIST ✅
+═══════════════════════════════════════════════════════════════════════════════
+
+HOW IT WORKS NOW:
+  ✅ Regional Risk Map shows baseline data (from Municipality Management)
+  ✅ Updates in real-time across ALL tabs and windows
+  ✅ Simulation predictions do NOT affect Regional Risk Map
+  ✅ No manual refresh needed
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 1: CROSS-TAB SYNC (Municipality Management → Dashboard)
+═══════════════════════════════════════════════════════════════════════════════
+
+□ Open Tab A: Login as MACO → Municipality Management
+□ Open Tab B: Login as LAAK → Dashboard
+
+In Tab A (MACO):
+  □ Change "Infected Dogs" from 12 to 25
+  □ Click "Save Data"
+  □ See toast: "Maco data has been updated successfully"
+
+Check Tab A Console Logs:
+  □ "💾 Saving all data (without regional risk sync)..."
+  □ "📍 Syncing regional risk data from Municipality Management..."
+  □ "✅ Regional risk data updated: 11 municipalities"
+  □ "👀 Municipalities data changed, updating map..."
+  □ "✅ Map updated with latest regional data"
+
+In Tab B (LAAK):
+  □ Watch Regional Risk Map (no manual action needed)
+  □ MACO marker should automatically update to show 25 infected
+  □ Risk level color may change (moderate → orange)
+
+Check Tab B Console Logs:
+  □ "🔄 Regional risk data changed (cross-tab sync) 11 municipalities"
+  □ "✅ Municipalities updated with latest regional risk data"
+  □ "👀 Municipalities data changed, updating map..."
+  □ "✅ Map updated with latest regional data"
+
+RESULT: ✅ PASS / ❌ FAIL
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 2: LANDING PAGE SYNC (Municipality Management → Landing Page)
+═══════════════════════════════════════════════════════════════════════════════
+
+□ Open Tab A: Landing Page (no login, scroll to Regional Map)
+□ Open Tab B: Login as MACO → Municipality Management
+
+In Tab B (MACO):
+  □ Change "Infected Dogs" to 30
+  □ Click "Save Data"
+
+In Tab A (Landing Page):
+  □ Watch Regional Risk Map automatically update
+  □ MACO marker shows 30 infected dogs
+  □ Legend counts update (e.g., "Moderate (1)" if MACO is moderate)
+
+Check Tab A Console Logs:
+  □ "🔄 Regional risk data changed (cross-tab sync) 11 municipalities"
+  □ "👀 Landing page: Municipalities data changed, updating map..."
+  □ "✅ Landing page map updated with latest regional data"
+
+RESULT: ✅ PASS / ❌ FAIL
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 3: SIMULATION DOES NOT UPDATE MAP
+═══════════════════════════════════════════════════════════════════════════════
+
+□ Tab A: Login as MACO → Dashboard
+□ Tab B: Login as LAAK → Dashboard (keep Regional Risk Map visible)
+
+In Tab A (MACO):
+  □ Current baseline: 30 infected dogs
+  □ Click "Run Simulation" (30 days)
+  □ Wait for simulation to complete
+  □ Check Results page: Should show prediction (e.g., 300 infected)
+
+Check Tab A Console Logs:
+  □ "🚀 Simulation: Calling backend API..."
+  □ "📊 Simulation: Backend response received"
+  □ "💾 Saving all data (without regional risk sync)..."
+  □ "✅ Simulation complete - results saved (Regional Risk Map NOT updated)"
+  
+  ⚠️ IMPORTANT: Should NOT see these logs:
+  ❌ "📍 Syncing regional risk data from Municipality Management..."
+  ❌ "📍 Updating Regional Risk Map from Municipality Management data..."
+
+In Tab B (LAAK):
+  □ Regional Risk Map should NOT update
+  □ MACO still shows 30 infected (baseline)
+  □ MACO does NOT show 300 (prediction)
+
+Check Tab B Console Logs:
+  ⚠️ Should see NO new logs (no cross-tab sync)
+
+RESULT: ✅ PASS / ❌ FAIL
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 4: PREDICTIONS APPEAR IN RESULTS PAGE ONLY
+═══════════════════════════════════════════════════════════════════════════════
+
+□ Login as MACO
+□ Run simulation (predicts 300 infected dogs)
+□ Go to Results page
+
+Check Results Page:
+  □ Shows "Predicted Infected Dogs: 300" (or similar)
+  □ Shows prediction charts/graphs
+
+Check Regional Risk Map (Dashboard):
+  □ Still shows baseline: 30 infected
+  □ Does NOT show prediction: 300
+
+Check Landing Page Regional Map:
+  □ Still shows baseline: 30 infected
+  □ Does NOT show prediction: 300
+
+RESULT: ✅ PASS / ❌ FAIL
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 5: MULTIPLE MUNICIPALITIES SAVING
+═══════════════════════════════════════════════════════════════════════════════
+
+□ Tab A: Landing Page (keep open)
+□ Tab B: Login as MACO → Municipality Management
+
+Step 1 - MACO saves:
+  □ Tab B: MACO sets infected dogs to 25, click Save
+  □ Tab A: Landing page map updates → MACO shows 25 ✅
+
+Step 2 - LAAK saves:
+  □ Tab B: Logout, login as LAAK → Municipality Management
+  □ Tab B: LAAK sets infected dogs to 5, click Save
+  □ Tab A: Landing page map updates → LAAK shows 5 ✅
+
+Step 3 - NABUNTURAN saves:
+  □ Tab B: Logout, login as NABUNTURAN → Municipality Management
+  □ Tab B: NABUNTURAN sets infected dogs to 0, click Save
+  □ Tab A: Landing page map updates → NABUNTURAN shows 0 ✅
+
+Final Check (Tab A - Landing Page):
+  □ MACO: 25 infected
+  □ LAAK: 5 infected
+  □ NABUNTURAN: 0 infected
+  □ All other municipalities: Their respective baseline data
+
+RESULT: ✅ PASS / ❌ FAIL
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TEST 6: SAME-TAB SYNC (Municipality saves then views map)
+═══════════════════════════════════════════════════════════════════════════════
+
+□ Login as MACO → Municipality Management
+
+Step 1:
+  □ Change infected dogs to 35
+  □ Click "Save Data"
+
+Step 2:
+  □ Immediately go to Dashboard
+  □ View Regional Risk Map
+
+Expected:
+  □ MACO marker shows 35 infected (updated immediately)
+  □ No need to refresh or wait
+
+Check Console Logs:
+  □ "🔄 Regional risk data changed (same-tab sync) 11 municipalities"
+  □ "👀 Municipalities data changed, updating map..."
+  □ "✅ Map updated with latest regional data"
+
+RESULT: ✅ PASS / ❌ FAIL
+
+═══════════════════════════════════════════════════════════════════════════════
+
+QUICK VISUAL CHECK
+═══════════════════════════════════════════════════════════════════════════════
+
+Baseline Data (from Municipality Management):
+  □ Shows on Regional Risk Map (Dashboard)
+  □ Shows on Landing Page Map
+  □ Shows on Municipality Management page
+
+Simulation Predictions:
+  □ Shows ONLY on Results page
+  □ Does NOT show on Regional Risk Map
+  □ Does NOT show on Landing Page
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SUMMARY
+═══════════════════════════════════════════════════════════════════════════════
+
+Total Tests: 6
+Passed: ___ / 6
+Failed: ___ / 6
+
+If ALL PASS: ✅ Regional Risk Map is fully centralized and working!
+If ANY FAIL: Check console logs and verify files were modified correctly
+
+═══════════════════════════════════════════════════════════════════════════════

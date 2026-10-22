@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { initializeDummyData, loadFromStorage, saveToStorage } from '@/services/localStorage'
+import { initializeDummyData, loadFromStorage, saveToStorage, updateRegionalRiskFromManagement } from '@/services/localStorage'
 import { useMunicipalityAuth } from '@/services/municipalityAuth'
+import { mergeWithRegionalRiskData, getRegionalRiskSummary, onRegionalRiskDataChange, clearRegionalRiskData } from '@/services/regionalRiskSync'
 
 export const useAppStore = defineStore('app', () => {
   const { currentMunicipality, hasPermission, canAccessMunicipalityData } = useMunicipalityAuth()
@@ -14,6 +15,39 @@ export const useAppStore = defineStore('app', () => {
   const vaccinationRecommendations = ref([])
   const isSimulationRunning = ref(false)
   const currentSimulationDay = ref(0)
+
+  // Set up cross-tab synchronization for regional risk data
+  const setupCrossTabSync = () => {
+    // Listen for changes to regional risk data from other tabs/municipalities
+    const cleanup = onRegionalRiskDataChange(() => {
+      console.log('🔄 [STORE] onRegionalRiskDataChange callback triggered')
+      console.log('🔄 [STORE] Current municipalities before merge:', municipalities.value.length)
+      
+      if (municipalities.value.length === 0) {
+        console.log('⚠️ [STORE] No municipalities yet, skipping merge')
+        return
+      }
+      
+      // Merge the updated regional data with our municipalities
+      const oldData = municipalities.value[0] ? JSON.parse(JSON.stringify(municipalities.value[0])) : null
+      const mergedData = mergeWithRegionalRiskData(municipalities.value)
+      
+      console.log('🔄 [STORE] First municipality BEFORE merge:', oldData)
+      console.log('🔄 [STORE] First municipality AFTER merge:', mergedData[0])
+      
+      // 🔥 CRITICAL: Replace the entire array to trigger Vue reactivity
+      municipalities.value = [...mergedData]
+      
+      console.log('✅ [STORE] Municipalities array replaced - Vue watch should trigger now')
+    })
+    
+    // Note: Cleanup not called because Pinia stores are singletons
+    // The listener will remain active for the app lifetime
+    return cleanup
+  }
+  
+  // Start listening for cross-tab changes when store is created
+  setupCrossTabSync()
 
   // Computed - Municipality-aware
   const totalMunicipalities = computed(() => {
@@ -72,16 +106,35 @@ export const useAppStore = defineStore('app', () => {
 
   // Actions - Municipality-aware
   const initializeApp = () => {
+    // 🔥 CRITICAL: Clear regional storage on first run to remove dummy data
+    // Regional storage should ONLY contain real user-saved data from Municipality Management
+    const regionalStorageCleared = localStorage.getItem('pawpatrol_regional_cleared')
+    if (!regionalStorageCleared) {
+      console.log('🧹 Clearing regional storage (first run - removing dummy data)')
+      clearRegionalRiskData()
+      localStorage.setItem('pawpatrol_regional_cleared', 'true')
+    }
+    
     const data = loadFromStorage()
     
     if (!data.municipalities || data.municipalities.length === 0) {
+      console.log('🆕 No local data found, initializing with dummy data...')
       const dummyData = initializeDummyData()
       municipalities.value = dummyData.municipalities
       simulationSettings.value = dummyData.simulationSettings
       simulationResults.value = dummyData.simulationResults
       vaccinationRecommendations.value = dummyData.vaccinationRecommendations
       saveAllData()
+      
+      // 🔥 Mark all dummy municipalities as NOT having regional data
+      municipalities.value = municipalities.value.map(m => ({
+        ...m,
+        hasRegionalData: false  // Dummy data flag
+      }))
+      
+      console.log('⚠️ Dummy data loaded locally but NOT synced to regional storage')
     } else {
+      console.log('📂 Loading existing data from storage...')
       municipalities.value = data.municipalities
       simulationSettings.value = data.simulationSettings
       simulationResults.value = data.simulationResults
@@ -91,6 +144,8 @@ export const useAppStore = defineStore('app', () => {
   }
 
   const saveAllData = () => {
+    console.log('💾 Saving all data (without regional risk sync)...')
+    
     saveToStorage({
       municipalities: municipalities.value,
       municipalityData: municipalityData.value,
@@ -98,6 +153,8 @@ export const useAppStore = defineStore('app', () => {
       simulationResults: simulationResults.value,
       vaccinationRecommendations: vaccinationRecommendations.value
     })
+    
+    console.log('✅ Data saved')
   }
 
   const addMunicipality = (municipality) => {
@@ -122,6 +179,11 @@ export const useAppStore = defineStore('app', () => {
     if (index !== -1) {
       municipalities.value[index] = { ...municipalities.value[index], ...updatedMunicipality }
       saveAllData()
+      
+      // ✅ SYNC TO REGIONAL RISK MAP
+      // When Municipality Management saves baseline data, sync it to Regional Risk Map
+      // so all municipalities see the updated baseline (not simulation predictions)
+      syncRegionalRiskFromManagement()
     }
   }
 
@@ -199,6 +261,31 @@ export const useAppStore = defineStore('app', () => {
     saveAllData()
   }
 
+  // NEW: Refresh regional risk data
+  // This allows any municipality to see the latest risk levels from all municipalities
+  const refreshRegionalRiskData = () => {
+    console.log('🔄 Refreshing regional risk data...')
+    
+    // Merge current municipalities with latest regional risk data
+    municipalities.value = mergeWithRegionalRiskData(municipalities.value)
+    
+    console.log('✅ Regional risk data refreshed')
+  }
+
+  // NEW: Get regional risk summary statistics
+  const regionalRiskSummary = computed(() => {
+    return getRegionalRiskSummary()
+  })
+
+  // NEW: Sync regional risk data from Municipality Management saves
+  // This ensures Regional Risk Map shows baseline data, not simulation predictions
+  const syncRegionalRiskFromManagement = () => {
+    console.log('📍 syncRegionalRiskFromManagement() called')
+    console.log('📍 Current municipalities count:', municipalities.value.length)
+    console.log('📍 Sample municipality:', municipalities.value[0])
+    updateRegionalRiskFromManagement(municipalities.value)
+  }
+
   return {
     // State
     municipalities,
@@ -231,6 +318,8 @@ export const useAppStore = defineStore('app', () => {
     resetToDefaults,
     setSimulationRunning,
     setCurrentSimulationDay,
-    clearSimulationData
+    clearSimulationData,
+    refreshRegionalRiskData,
+    regionalRiskSummary
   }
 })

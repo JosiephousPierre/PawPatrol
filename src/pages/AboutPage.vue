@@ -10,7 +10,7 @@
         </div>
       </div>
       <p class="text-xl text-muted-blue max-w-3xl mx-auto">
-        A Hybrid Quantum–Classical Framework for Stochastic Network-Based Rabies Transmission Modeling with Fractional-Order Dynamics, Deep Reinforcement Learning Adaptive Control, and Multiscale Spatial Heterogeneity in Coupled Dog (Canis lupus familiaris), Cat (Felis catus), and Human Populations
+        A Decision-Support Framework for Rabies Control Using Computational Transmission Modeling and AI-Driven Intervention Selection
       </p>
     </div>
 

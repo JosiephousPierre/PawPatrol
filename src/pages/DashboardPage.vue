@@ -132,6 +132,129 @@
       </template>
     </div>
 
+    <!-- Municipality Ranking Card -->
+    <Card class="bg-white border-l-4 border-l-primary">
+      <template #header>
+        <div class="px-6 py-4 border-b border-light-blue">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-dark-blue flex items-center">
+                <i class="pi pi-chart-line text-primary mr-2"></i>
+                Municipality Rankings
+              </h3>
+              <p class="text-muted-blue text-sm">Ranked by rabies cases (baseline data)</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <!-- Sort By Dropdown -->
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-muted-blue font-medium">Sort by:</label>
+                <Dropdown 
+                  v-model="rankingSortBy" 
+                  :options="rankingSortOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Select species"
+                  class="w-36"
+                />
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-muted-blue">Centralized Data</span>
+                <i class="pi pi-globe text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template #content>
+        <div class="p-6">
+          <div v-if="isLoadingData" class="space-y-3">
+            <div v-for="i in 5" :key="i" class="animate-pulse">
+              <div class="h-16 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+          
+          <div v-else-if="rankedMunicipalities.length === 0" class="text-center py-8">
+            <i class="pi pi-inbox text-muted-blue text-4xl mb-3"></i>
+            <p class="text-muted-blue">No data available yet</p>
+            <p class="text-sm text-muted-blue mt-2">Rankings will appear when municipalities save their baseline data</p>
+          </div>
+
+          <div v-else class="space-y-3 max-h-96 overflow-y-auto">
+            <div 
+              v-for="(municipality, index) in rankedMunicipalities" 
+              :key="municipality.id"
+              class="flex items-center justify-between p-4 rounded-lg border transition-all hover:shadow-md"
+              :class="getRankingCardClass(index)"
+            >
+              <!-- Left: Rank & Name -->
+              <div class="flex items-center space-x-4">
+                <!-- Rank Badge -->
+                <div 
+                  class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
+                  :class="getRankBadgeClass(index)"
+                >
+                  {{ index + 1 }}
+                </div>
+                
+                <!-- Municipality Info -->
+                <div>
+                  <p class="font-semibold text-dark-blue">{{ municipality.name }}</p>
+                  <p class="text-xs text-muted-blue">
+                    <span class="font-bold text-lg" :class="getHighlightedCaseColor()">{{ municipality.sortedCases }}</span>
+                    <span class="ml-1">{{ getSortedCaseLabel() }}</span>
+                    <span class="mx-1">•</span>
+                    <span :class="getRiskColorText(municipality.riskLevel)">{{ municipality.riskLevel }}</span> risk
+                  </p>
+                </div>
+              </div>
+
+              <!-- Right: Case Breakdown -->
+              <div class="text-right">
+                <div class="flex items-center gap-3 text-sm">
+                  <div class="text-center" :class="{ 'scale-110 font-extrabold': rankingSortBy === 'dogs' }">
+                    <p class="font-bold transition-all" :class="rankingSortBy === 'dogs' ? 'text-risk-high text-xl' : 'text-risk-high'">
+                      {{ municipality.infectedDogs }}
+                    </p>
+                    <p class="text-xs text-muted-blue">Dogs</p>
+                  </div>
+                  <div class="text-center" :class="{ 'scale-110 font-extrabold': rankingSortBy === 'cats' }">
+                    <p class="font-bold transition-all" :class="rankingSortBy === 'cats' ? 'text-risk-moderate text-xl' : 'text-risk-moderate'">
+                      {{ municipality.infectedCats }}
+                    </p>
+                    <p class="text-xs text-muted-blue">Cats</p>
+                  </div>
+                  <div class="text-center" :class="{ 'scale-110 font-extrabold': rankingSortBy === 'humans' }">
+                    <p class="font-bold transition-all" :class="rankingSortBy === 'humans' ? 'text-risk-critical text-xl' : 'text-risk-critical'">
+                      {{ municipality.infectedHumans }}
+                    </p>
+                    <p class="text-xs text-muted-blue">Humans</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Footer -->
+          <div v-if="rankedMunicipalities.length > 0" class="mt-6 pt-4 border-t border-light-blue">
+            <div class="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p class="text-2xl font-bold text-primary">{{ rankedMunicipalities.length }}</p>
+                <p class="text-xs text-muted-blue">Municipalities</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-risk-high">{{ totalSortedCases }}</p>
+                <p class="text-xs text-muted-blue">Total {{ getSortedCaseLabel() }}</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold" :class="averageRiskColor">{{ averageRiskLevel }}</p>
+                <p class="text-xs text-muted-blue">Avg Risk Level</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </Card>
+
     <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Regional Risk Map -->
@@ -233,6 +356,14 @@ const isLoadingData = ref(true)
 const isLoadingCharts = ref(true)
 const isRefreshing = ref(false)
 
+// NEW: Ranking sort state
+const rankingSortBy = ref('dogs') // Default: sort by dogs
+const rankingSortOptions = [
+  { label: '🐕 Dogs', value: 'dogs' },
+  { label: '🐈 Cats', value: 'cats' },
+  { label: '👤 Humans', value: 'humans' }
+]
+
 const riskDistribution = computed(() => {
   const municipalities = appStore.municipalities
   const total = municipalities.length
@@ -280,6 +411,108 @@ const moderateRiskCount = computed(() => moderateRiskMunicipalities.value.length
 const highRiskCount = computed(() => highRiskMunicipalities.value.length)
 const criticalRiskCount = computed(() => criticalMunicipalities.value.length)
 
+// NEW: Municipality Rankings (based on initial/baseline data, not predictions)
+// Sorted dynamically based on user selection (dogs, cats, or humans)
+// WITH MULTI-LEVEL TIE-BREAKER SYSTEM:
+// 1. Primary: Sort by selected species
+// 2. Secondary: If tied, use most epidemiologically relevant other species
+// 3. Tertiary: If still tied, use remaining species
+const rankedMunicipalities = computed(() => {
+  // Filter municipalities with regional data (baseline data saved from Municipality Management)
+  const municipalitiesWithData = appStore.municipalities.filter(m => m.hasRegionalData !== false)
+  
+  // Calculate cases for each municipality (baseline data only)
+  const municipalitiesWithCases = municipalitiesWithData.map(m => {
+    const infectedDogs = m.infectedDogs || 0
+    const infectedCats = m.infectedCats || 0
+    const infectedHumans = m.infectedHumans || 0
+    
+    // Determine sorting priorities based on selected species
+    let primarySort = 0    // Main sort value
+    let secondarySort = 0  // First tie-breaker (most relevant species)
+    let tertiarySort = 0   // Second tie-breaker (remaining species)
+    
+    if (rankingSortBy.value === 'dogs') {
+      primarySort = infectedDogs
+      secondarySort = infectedCats    // Cats are secondary hosts (more relevant)
+      tertiarySort = infectedHumans   // Humans are dead-end hosts
+    } else if (rankingSortBy.value === 'cats') {
+      primarySort = infectedCats
+      secondarySort = infectedDogs     // Dogs are primary source of cat infections
+      tertiarySort = infectedHumans    // Humans less relevant to cat transmission
+    } else if (rankingSortBy.value === 'humans') {
+      primarySort = infectedHumans
+      secondarySort = infectedDogs     // Dogs are primary source (>95% of human cases)
+      tertiarySort = infectedCats      // Cats contribute less to human infections
+    }
+    
+    return {
+      id: m.id,
+      name: m.name,
+      infectedDogs: infectedDogs,
+      infectedCats: infectedCats,
+      infectedHumans: infectedHumans,
+      totalCases: infectedDogs + infectedCats + infectedHumans,
+      sortedCases: primarySort,      // Display value for selected species
+      primarySort: primarySort,       // Primary sorting
+      secondarySort: secondarySort,   // First tie-breaker
+      tertiarySort: tertiarySort,     // Second tie-breaker
+      riskLevel: m.riskLevel || 'safe',
+      lastUpdated: m.lastUpdated
+    }
+  })
+  
+  // Multi-level sort: Primary → Secondary → Tertiary
+  return municipalitiesWithCases.sort((a, b) => {
+    // Level 1: Primary sort by selected species
+    if (b.primarySort !== a.primarySort) {
+      return b.primarySort - a.primarySort
+    }
+    
+    // Level 2: First tie-breaker (most relevant other species)
+    if (b.secondarySort !== a.secondarySort) {
+      return b.secondarySort - a.secondarySort
+    }
+    
+    // Level 3: Second tie-breaker (remaining species)
+    return b.tertiarySort - a.tertiarySort
+  })
+})
+
+// Total cases for the currently selected species
+const totalSortedCases = computed(() => {
+  return rankedMunicipalities.value.reduce((sum, m) => sum + m.sortedCases, 0)
+})
+
+// Average risk level across region
+const averageRiskLevel = computed(() => {
+  if (rankedMunicipalities.value.length === 0) return 'N/A'
+  
+  const riskValues = { safe: 0, low: 1, moderate: 2, high: 3, critical: 4 }
+  const totalRisk = rankedMunicipalities.value.reduce((sum, m) => {
+    return sum + (riskValues[m.riskLevel] || 0)
+  }, 0)
+  
+  const avgValue = totalRisk / rankedMunicipalities.value.length
+  
+  if (avgValue < 0.5) return 'Safe'
+  if (avgValue < 1.5) return 'Low'
+  if (avgValue < 2.5) return 'Moderate'
+  if (avgValue < 3.5) return 'High'
+  return 'Critical'
+})
+
+// Color for average risk level
+const averageRiskColor = computed(() => {
+  const level = averageRiskLevel.value.toLowerCase()
+  if (level === 'safe') return 'text-risk-safe'
+  if (level === 'low') return 'text-risk-low'
+  if (level === 'moderate') return 'text-risk-moderate'
+  if (level === 'high') return 'text-risk-high'
+  if (level === 'critical') return 'text-risk-critical'
+  return 'text-muted-blue'
+})
+
 // Helper function to get municipalities for a specific risk level
 const getMunicipalitiesByRisk = (level) => {
   switch(level) {
@@ -324,6 +557,49 @@ const getRiskColorClass = (level) => {
     critical: 'bg-risk-critical'
   }
   return colors[level] || 'bg-muted-blue'
+}
+
+// NEW: Helper functions for ranking card styling
+// Using RED gradient for highest cases (critical/urgent attention needed)
+// Decreasing severity as rank goes down
+const getRankBadgeClass = (index) => {
+  if (index === 0) return 'bg-gradient-to-br from-red-600 to-red-700 text-white shadow-lg'        // Most cases - Critical (RED)
+  if (index === 1) return 'bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-md'  // 2nd most - High concern (ORANGE)
+  if (index === 2) return 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-md'    // 3rd most - Warning (AMBER)
+  return 'bg-gray-200 text-dark-blue' // Lower ranks - Less urgent
+}
+
+const getRankingCardClass = (index) => {
+  if (index === 0) return 'border-red-400 bg-red-50/30'      // Most cases - Critical attention
+  if (index === 1) return 'border-orange-400 bg-orange-50/30' // 2nd most - High concern
+  if (index === 2) return 'border-amber-400 bg-amber-50/30'   // 3rd most - Warning
+  return 'border-light-blue bg-white'                         // Lower ranks
+}
+
+const getRiskColorText = (level) => {
+  const colors = {
+    safe: 'text-risk-safe',
+    low: 'text-risk-low',
+    moderate: 'text-risk-moderate',
+    high: 'text-risk-high',
+    critical: 'text-risk-critical'
+  }
+  return colors[level] || 'text-muted-blue'
+}
+
+// NEW: Helper functions for sorting labels
+const getSortedCaseLabel = () => {
+  if (rankingSortBy.value === 'dogs') return 'infected dogs'
+  if (rankingSortBy.value === 'cats') return 'infected cats'
+  if (rankingSortBy.value === 'humans') return 'infected humans'
+  return 'cases'
+}
+
+const getHighlightedCaseColor = () => {
+  if (rankingSortBy.value === 'dogs') return 'text-risk-high'
+  if (rankingSortBy.value === 'cats') return 'text-risk-moderate'
+  if (rankingSortBy.value === 'humans') return 'text-risk-critical'
+  return 'text-dark-blue'
 }
 
 const navigateTo = (path) => {

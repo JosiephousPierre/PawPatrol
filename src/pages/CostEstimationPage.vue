@@ -34,17 +34,21 @@
 
     <!-- Cost Estimation Content -->
     <div v-else-if="interventionBudget" class="space-y-6">
-      <!-- Budget Summary Cards -->
+      <!-- Budget Summary Cards WITH RANGES -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card class="bg-white border-l-4 border-l-green-600 shadow-card">
           <template #content>
             <div class="p-4">
               <div class="flex items-center justify-between mb-2">
-                <p class="text-xs text-muted-blue font-medium">TOTAL BUDGET</p>
+                <p class="text-xs text-muted-blue font-medium">TOTAL BUDGET RANGE</p>
                 <i class="pi pi-wallet text-green-600 text-xl"></i>
               </div>
-              <p class="text-3xl font-bold text-green-600">{{ formatPHP(interventionBudget.summary.grandTotal) }}</p>
-              <p class="text-xs text-muted-blue mt-1">Total budget for {{ currentMunicipality?.name }}</p>
+              <div class="space-y-1">
+                <p class="text-2xl font-bold text-green-600">{{ formatPHP(interventionBudget.summary.grandTotal.min) }}</p>
+                <p class="text-xs text-muted-blue">to</p>
+                <p class="text-2xl font-bold text-green-700">{{ formatPHP(interventionBudget.summary.grandTotal.max) }}</p>
+              </div>
+              <p class="text-xs text-muted-blue mt-2">For {{ currentMunicipality?.name }}</p>
             </div>
           </template>
         </Card>
@@ -53,10 +57,12 @@
           <template #content>
             <div class="p-4">
               <div class="flex items-center justify-between mb-2">
-                <p class="text-xs text-muted-blue font-medium">VACCINATION</p>
+                <p class="text-xs text-muted-blue font-medium">VACCINATION COST</p>
                 <i class="pi pi-heart text-primary text-xl"></i>
               </div>
-              <p class="text-3xl font-bold text-primary">{{ formatPHP(interventionBudget.summary.totalVaccinationCost) }}</p>
+              <div class="space-y-1">
+                <p class="text-xl font-bold text-primary">{{ formatPHP(interventionBudget.summary.totalVaccinationCost.min) }} - {{ formatPHP(interventionBudget.summary.totalVaccinationCost.max) }}</p>
+              </div>
               <p class="text-xs text-muted-blue mt-1">{{ interventionBudget.vaccinations.total.toLocaleString() }} vaccines</p>
             </div>
           </template>
@@ -66,10 +72,12 @@
           <template #content>
             <div class="p-4">
               <div class="flex items-center justify-between mb-2">
-                <p class="text-xs text-muted-blue font-medium">HUMAN PEP</p>
+                <p class="text-xs text-muted-blue font-medium">HUMAN PEP COST</p>
                 <i class="pi pi-users text-orange-600 text-xl"></i>
               </div>
-              <p class="text-3xl font-bold text-orange-600">{{ formatPHP(interventionBudget.summary.totalPEPCost) }}</p>
+              <div class="space-y-1">
+                <p class="text-xl font-bold text-orange-600">{{ formatPHP(interventionBudget.summary.totalPEPCost.min) }} - {{ formatPHP(interventionBudget.summary.totalPEPCost.max) }}</p>
+              </div>
               <p class="text-xs text-muted-blue mt-1">Post-exposure treatments</p>
             </div>
           </template>
@@ -100,22 +108,30 @@
                   class="px-3 py-1 rounded text-sm font-medium"
                   :class="getRiskBadgeClass(myMunicipalityCost.riskLevel)"
                 >
-                  {{ getRiskLabel(myMunicipalityCost.riskLevel) }} Risk
+                  {{ getRiskLabel(myMunicipalityCost.riskLevel) }} 
                 </span>
               </div>
               <div class="text-right">
-                <p class="text-xs text-muted-blue mb-1">Total Budget Required</p>
-                <p class="text-4xl font-bold text-green-600">{{ formatPHP(myMunicipalityCost.totalCost) }}</p>
-                <p class="text-sm text-muted-blue mt-1">{{ formatPHP(myMunicipalityCost.costPerCapita) }} per capita</p>
+                <p class="text-xs text-muted-blue mb-1">Total Budget Required (Range)</p>
+                <div class="space-y-1">
+                  <p class="text-3xl font-bold text-green-600">{{ formatPHP(myMunicipalityCost.totalCost.min) }}</p>
+                  <p class="text-xs text-muted-blue">to</p>
+                  <p class="text-3xl font-bold text-green-700">{{ formatPHP(myMunicipalityCost.totalCost.max) }}</p>
+                </div>
+                <p class="text-xs text-muted-blue mt-2">{{ formatPHP(myMunicipalityCost.costPerCapita.min) }} - {{ formatPHP(myMunicipalityCost.costPerCapita.max) }} per capita</p>
               </div>
             </div>
 
-            <!-- Cost Breakdown Grid -->
+            <!-- Cost Breakdown Grid WITH RANGES -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="bg-blue-50 p-4 rounded-lg">
-                <p class="text-xs text-muted-blue mb-2">VACCINATION COST</p>
-                <p class="text-2xl font-bold text-primary mb-2">{{ formatPHP(myMunicipalityCost.breakdown.vaccination.costs.total) }}</p>
-                <div class="text-xs space-y-1">
+              <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <p class="text-xs text-muted-blue mb-2">VACCINATION COST RANGE</p>
+                <div class="space-y-1 mb-3">
+                  <p class="text-xl font-bold text-primary">{{ formatPHP(myMunicipalityCost.breakdown.vaccination.costs.total.min) }}</p>
+                  <p class="text-xs text-muted-blue">to</p>
+                  <p class="text-xl font-bold text-primary">{{ formatPHP(myMunicipalityCost.breakdown.vaccination.costs.total.max) }}</p>
+                </div>
+                <div class="text-xs space-y-1 pt-2 border-t border-blue-200">
                   <p class="flex justify-between">
                     <span class="text-muted-blue">Dogs:</span>
                     <span class="font-medium">{{ myMunicipalityCost.breakdown.vaccination.vaccinations.dogs }} vaccines</span>
@@ -128,29 +144,32 @@
                     <span class="text-muted-blue">Total:</span>
                     <span class="font-semibold">{{ myMunicipalityCost.breakdown.vaccination.vaccinations.total }} vaccines</span>
                   </p>
+                  <p class="text-xs text-gray-500 italic mt-2">₱430-1,000 per dose</p>
                 </div>
               </div>
 
-              <div class="bg-orange-50 p-4 rounded-lg">
-                <p class="text-xs text-muted-blue mb-2">HUMAN PEP COST</p>
-                <p class="text-2xl font-bold text-orange-600 mb-2">{{ formatPHP(myMunicipalityCost.breakdown.humanPEP.cost) }}</p>
-                <div class="text-xs space-y-1">
+              <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <p class="text-xs text-muted-blue mb-2">HUMAN PEP COST RANGE</p>
+                <div class="space-y-1 mb-3">
+                  <p class="text-xl font-bold text-orange-600">{{ formatPHP(myMunicipalityCost.breakdown.humanPEP.cost.min) }}</p>
+                  <p class="text-xs text-muted-blue">to</p>
+                  <p class="text-xl font-bold text-orange-600">{{ formatPHP(myMunicipalityCost.breakdown.humanPEP.cost.max) }}</p>
+                </div>
+                <div class="text-xs space-y-1 pt-2 border-t border-orange-200">
                   <p class="flex justify-between">
                     <span class="text-muted-blue">Estimated Cases:</span>
                     <span class="font-medium">{{ myMunicipalityCost.breakdown.humanPEP.estimatedCases }} people</span>
                   </p>
-                  <p class="flex justify-between">
-                    <span class="text-muted-blue">Cost per Treatment:</span>
-                    <span class="font-medium">{{ formatPHP(myMunicipalityCost.breakdown.humanPEP.costPerPerson) }}</span>
-                  </p>
+                  <p class="text-xs text-gray-500 italic mt-2">₱500-1,000 per treatment</p>
                 </div>
               </div>
 
-              <div class="bg-red-50 p-4 rounded-lg">
+              <div class="bg-red-50 p-4 rounded-lg border border-red-200">
                 <p class="text-xs text-muted-blue mb-2">EMERGENCY RESPONSE</p>
                 <p class="text-2xl font-bold text-risk-high mb-2">{{ formatPHP(myMunicipalityCost.breakdown.emergencyResponse.cost) }}</p>
-                <div class="text-xs space-y-1">
-                  <p class="text-muted-blue">Includes surveillance, testing, and emergency containment measures</p>
+                <div class="text-xs space-y-1 text-muted-blue">
+                  <p>Includes surveillance, testing, and emergency containment measures</p>
+                  <p class="text-xs text-gray-500 italic mt-2">Fixed operational costs</p>
                 </div>
               </div>
             </div>
@@ -207,17 +226,19 @@
 
               <Column field="breakdown.vaccination.costs.total" header="Vaccination Cost">
                 <template #body="slotProps">
-                  <span class="text-sm font-semibold text-primary">
-                    {{ formatPHP(slotProps.data.breakdown.vaccination.costs.total) }}
-                  </span>
+                  <div class="text-sm">
+                    <p class="font-semibold text-primary">{{ formatPHP(slotProps.data.breakdown.vaccination.costs.total.min) }}</p>
+                    <p class="text-xs text-muted-blue">to {{ formatPHP(slotProps.data.breakdown.vaccination.costs.total.max) }}</p>
+                  </div>
                 </template>
               </Column>
 
               <Column field="breakdown.humanPEP.cost" header="Human PEP">
                 <template #body="slotProps">
-                  <span class="text-sm font-semibold text-orange-600">
-                    {{ formatPHP(slotProps.data.breakdown.humanPEP.cost) }}
-                  </span>
+                  <div class="text-sm">
+                    <p class="font-semibold text-orange-600">{{ formatPHP(slotProps.data.breakdown.humanPEP.cost.min) }}</p>
+                    <p class="text-xs text-muted-blue">to {{ formatPHP(slotProps.data.breakdown.humanPEP.cost.max) }}</p>
+                  </div>
                 </template>
               </Column>
 
@@ -231,9 +252,10 @@
 
               <Column field="totalCost" header="Total Cost">
                 <template #body="slotProps">
-                  <span class="text-sm font-bold text-green-600">
-                    {{ formatPHP(slotProps.data.totalCost) }}
-                  </span>
+                  <div class="text-sm">
+                    <p class="font-bold text-green-600">{{ formatPHP(slotProps.data.totalCost.min) }}</p>
+                    <p class="text-xs text-muted-blue">to {{ formatPHP(slotProps.data.totalCost.max) }}</p>
+                  </div>
                 </template>
               </Column>
             </DataTable>
@@ -251,18 +273,33 @@
                 <p class="text-xl font-semibold text-primary">{{ selectedTargetCoverage }}%</p>
               </div>
               <div>
-                <p class="text-muted-blue mb-1">Average Cost per Vaccine</p>
-                <p class="text-xl font-semibold text-primary">{{ formatPHP(interventionBudget.costPerVaccine) }}</p>
+                <p class="text-muted-blue mb-1">Cost per Vaccine (Range)</p>
+                <p class="text-lg font-semibold text-primary">{{ formatPHP(interventionBudget.costPerVaccine.min) }} - {{ formatPHP(interventionBudget.costPerVaccine.max) }}</p>
               </div>
               <div>
                 <p class="text-muted-blue mb-1">Total Vaccinations Needed</p>
                 <p class="text-xl font-semibold text-primary">{{ interventionBudget.vaccinations.total.toLocaleString() }}</p>
               </div>
             </div>
-            <div class="pt-4 border-t border-light-blue">
-              <p class="text-xs text-muted-blue flex items-center">
-                <i class="pi pi-info-circle mr-2"></i>
-                Costs based on DOH standard rates: Dog vaccine ₱150, Cat vaccine ₱120, Human PEP ₱15,000. Includes operational, surveillance, and administrative costs (10% overhead).
+            <div class="pt-4 border-t border-light-blue space-y-2">
+              <div class="bg-blue-50 p-3 rounded">
+                <p class="text-xs font-semibold text-dark-blue mb-2 flex items-center">
+                  <i class="pi pi-info-circle text-primary mr-2"></i>
+                  Cost Range Information
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <p class="text-muted-blue">Dog/Cat Vaccine:</p>
+                    <p class="font-semibold text-primary">₱{{ interventionBudget.priceRanges.dogVaccine.min }} - ₱{{ interventionBudget.priceRanges.dogVaccine.max }} per dose</p>
+                  </div>
+                  <div>
+                    <p class="text-muted-blue">Human PEP:</p>
+                    <p class="font-semibold text-orange-600">₱{{ interventionBudget.priceRanges.humanPEP.min }} - ₱{{ interventionBudget.priceRanges.humanPEP.max }} per treatment</p>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 italic">
+                💡 Actual costs vary based on procurement, location, and volume. Minimum = bulk/optimistic pricing, Maximum = retail/conservative pricing.
               </p>
             </div>
           </div>

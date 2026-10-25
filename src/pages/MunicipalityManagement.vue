@@ -350,7 +350,7 @@ const formData = ref({
 })
 
 const riskLevelOptions = [
-  { label: 'Safe', value: 'safe' },
+  { label: 'No Risk', value: 'safe' },
   { label: 'Low Risk', value: 'low' },
   { label: 'Moderate Risk', value: 'moderate' },
   { label: 'High Risk', value: 'high' },

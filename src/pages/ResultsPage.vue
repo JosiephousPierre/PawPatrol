@@ -55,7 +55,7 @@
                 <div>
                   <p class="font-medium text-dark-blue mb-2">🦠 Infection Rate (%)</p>
                   <ul class="space-y-1 text-muted-blue">
-                    <li>• <strong>< 0.1%</strong>: ✅ Safe - Very few cases</li>
+                    <li>• <strong>< 0.1%</strong>: ✅ No Risk - Very few cases</li>
                     <li>• <strong>0.1-1%</strong>: ⚠️ Low - Emerging outbreak</li>
                     <li>• <strong>1-5%</strong>: ⚠️ Moderate - Active outbreak</li>
                     <li>• <strong>> 5%</strong>: 🚨 High/Critical - Epidemic</li>
@@ -435,7 +435,7 @@
                       not maintenance hosts. They depend on infection from dogs and cannot sustain transmission independently.
                     </p>
                     <ul class="text-xs text-muted-blue space-y-1 ml-4">
-                      <li>✓ Cat-to-cat transmission is lower (0.7× dog rate) - no published data validates this exact factor</li>
+                      <li>✓ Cat-to-cat transmission is lower (0.7× dog rate)</li>
                       <li>✓ Dog-to-cat spillover is reduced (0.4× rate) - modeling assumption for cross-species barrier</li>
                       <li>✓ Over {{ simulationDays }} days: Deaths ({{ Math.abs(infectionFlow.cats.removed).toLocaleString() }}) greatly exceed new cases ({{ infectionFlow.cats.newInfections }})</li>
                       <li>✓ Rabies is 100% fatal in cats - the "removed" are <strong>dead</strong>, not recovered</li>
@@ -1586,7 +1586,7 @@ const getInfectionStatus = (rate) => {
   if (rate >= 5) return 'High'
   if (rate >= 1) return 'Moderate'
   if (rate >= 0.1) return 'Low'
-  return 'Safe'
+  return 'No Risk'
 }
 
 const getRiskBadgeClass = (riskLevel) => {
@@ -1624,7 +1624,7 @@ const isRecommendedAction = (action, recommendedVaccination) => {
 
 const getRiskLabel = (riskLevel) => {
   const labels = {
-    safe: 'Safe',
+    safe: 'No Risk',
     low: 'Low Risk',
     moderate: 'Moderate',
     high: 'High Risk',
@@ -1675,7 +1675,7 @@ const initializeMap = () => {
     const popup = L.popup().setContent(`
       <div class="text-sm">
         <h4 class="font-semibold text-dark-blue mb-2">${municipality.name}</h4>
-        <p class="text-muted-blue">Risk Level: <span class="font-medium">${municipality.riskLevel}</span></p>
+        <p class="text-muted-blue">Risk Level: <span class="font-medium">${getRiskLabel(municipality.riskLevel)}</span></p>
         <p class="text-muted-blue">Infected: ${municipality.infectedDogs || 0} dogs</p>
         <p class="text-muted-blue">Vaccinated: ${municipality.vaccinatedDogs || 0} dogs</p>
         <p class="text-muted-blue mt-1 text-xs">Last updated: ${municipality.lastUpdated ? new Date(municipality.lastUpdated).toLocaleDateString() : 'N/A'}</p>

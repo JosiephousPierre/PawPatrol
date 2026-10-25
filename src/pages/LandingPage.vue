@@ -40,7 +40,7 @@
         </h1>
         
         <p class="text-xl md:text-2xl text-muted-blue mb-4 max-w-4xl mx-auto leading-relaxed animate-slide-up-delay-1">
-          A Decision-Support Framework for Rabies Control Using Computational Transmission Modeling and AI-Driven Intervention Selection
+          A WEB-BASED DECISION-SUPPORT CLASSICAL FRAMEWORK FOR STOCHASTIC RABIES TRANSMISSION MODELING WITH FRACTIONAL-ORDER DYNAMICS, RULE-BASED ADAPTIVE INTERVENTION RECOMMENDATIONS, AND SPATIAL HETEROGENEITY IN COUPLED DOG (Canis lupus familiaris), CAT (Felis catus),  AND HUMAN POPULATIONS
         </p>
         
         <p class="text-lg text-muted-blue mb-10 max-w-3xl mx-auto animate-slide-up-delay-2">
@@ -105,7 +105,7 @@
               <div class="mt-4 flex flex-wrap gap-4 justify-center">
                 <div class="flex items-center space-x-2">
                   <div class="w-4 h-4 rounded-full bg-risk-safe"></div>
-                  <span class="text-sm text-muted-blue">Safe ({{ safeCount }})</span>
+                  <span class="text-sm text-muted-blue">No Risk ({{ safeCount }})</span>
                 </div>
                 <div class="flex items-center space-x-2">
                   <div class="w-4 h-4 rounded-full bg-risk-low"></div>
@@ -434,13 +434,13 @@ const getRiskColor = (riskLevel) => {
 // Get risk label
 const getRiskLabel = (riskLevel) => {
   const labels = {
-    safe: 'Safe',
+    safe: 'No Risk',
     low: 'Low Risk',
     moderate: 'Moderate',
     high: 'High Risk',
     critical: 'Critical'
   }
-  return labels[riskLevel] || 'Safe'
+  return labels[riskLevel] || 'No Risk'
 }
 
 // Initialize the Davao de Oro map with risk data

@@ -633,13 +633,18 @@ export const generatePredictiveAnalysisSummary = (municipalities, forecastDays =
 /**
  * Standard intervention costs (in Philippine Peso - PHP)
  * Based on DOH and LGU typical costs
+ * 
+ * NOW SUPPORTS COST RANGES:
+ * - Each cost item has min and max values
+ * - Allows for realistic cost estimation with uncertainty
+ * - Provides best-case (minimum) and worst-case (maximum) scenarios
  */
 export const INTERVENTION_COSTS = {
-  // Vaccination costs
-  dogVaccine: 150,              // PHP per dose (includes vaccine + administration)
-  catVaccine: 120,              // PHP per dose (cats slightly cheaper)
-  humanPEP: 15000,              // PHP per person (Post-Exposure Prophylaxis - full course)
-  humanPreExposure: 8000,       // PHP per person (Pre-exposure vaccination)
+  // Vaccination costs (RANGES)
+  dogVaccine: { min: 430, max: 1000 },   // PHP per dose (₱430-1000 range)
+  catVaccine: { min: 430, max: 1000 },   // PHP per dose (₱430-1000 range - same as dogs)
+  humanPEP: { min: 500, max: 1000 },     // PHP per person (Post-Exposure Prophylaxis - ₱500-1000 range)
+  humanPreExposure: 8000,                 // PHP per person (Pre-exposure vaccination - fixed for now)
   
   // Operational costs
   mobilizationPerMunicipality: 5000,     // PHP (transport, setup per municipality)
@@ -659,7 +664,8 @@ export const INTERVENTION_COSTS = {
 }
 
 /**
- * Calculate vaccination cost for a municipality
+ * Calculate vaccination cost for a municipality WITH COST RANGES
+ * Returns both minimum and maximum cost estimates
  */
 export const calculateVaccinationCost = (municipality, targetCoveragePercent = 80, costConfig = INTERVENTION_COSTS) => {
   const currentVaccinated = municipality.vaccinatedDogs || 0
@@ -675,12 +681,17 @@ export const calculateVaccinationCost = (municipality, targetCoveragePercent = 8
   const currentCatVaccinated = 0 // Assume starting from zero for cats
   const additionalCatVaccines = Math.max(0, targetCatVaccinations - currentCatVaccinated)
   
-  // Calculate costs
-  const dogVaccineCost = additionalDogVaccines * costConfig.dogVaccine
-  const catVaccineCost = additionalCatVaccines * costConfig.catVaccine
-  const totalVaccineCost = dogVaccineCost + catVaccineCost
+  // ✅ CALCULATE MINIMUM COSTS (best-case scenario)
+  const dogVaccineCostMin = additionalDogVaccines * costConfig.dogVaccine.min
+  const catVaccineCostMin = additionalCatVaccines * costConfig.catVaccine.min
+  const totalVaccineCostMin = dogVaccineCostMin + catVaccineCostMin
   
-  // Operational costs
+  // ✅ CALCULATE MAXIMUM COSTS (worst-case scenario)
+  const dogVaccineCostMax = additionalDogVaccines * costConfig.dogVaccine.max
+  const catVaccineCostMax = additionalCatVaccines * costConfig.catVaccine.max
+  const totalVaccineCostMax = dogVaccineCostMax + catVaccineCostMax
+  
+  // Operational costs (fixed - no range for now)
   const mobilizationCost = costConfig.mobilizationPerMunicipality
   const publicAwarenessCost = costConfig.publicAwarenessPerMunicipality
   
@@ -692,9 +703,18 @@ export const calculateVaccinationCost = (municipality, targetCoveragePercent = 8
   // Surveillance cost (1 month)
   const surveillanceCost = costConfig.surveillancePerMunicipality
   
-  const subtotal = totalVaccineCost + mobilizationCost + publicAwarenessCost + vaccinationTeamCost + surveillanceCost
-  const adminCost = subtotal * costConfig.administrativeOverhead
-  const totalCost = subtotal + adminCost
+  // Fixed operational costs
+  const fixedOperationalCosts = mobilizationCost + publicAwarenessCost + vaccinationTeamCost + surveillanceCost
+  
+  // ✅ MINIMUM TOTAL COST
+  const subtotalMin = totalVaccineCostMin + fixedOperationalCosts
+  const adminCostMin = subtotalMin * costConfig.administrativeOverhead
+  const totalCostMin = subtotalMin + adminCostMin
+  
+  // ✅ MAXIMUM TOTAL COST
+  const subtotalMax = totalVaccineCostMax + fixedOperationalCosts
+  const adminCostMax = subtotalMax * costConfig.administrativeOverhead
+  const totalCostMax = subtotalMax + adminCostMax
   
   return {
     municipalityId: municipality.id,
@@ -706,15 +726,31 @@ export const calculateVaccinationCost = (municipality, targetCoveragePercent = 8
       total: totalVaccinations
     },
     costs: {
-      dogVaccines: dogVaccineCost,
-      catVaccines: catVaccineCost,
+      // ✅ NOW INCLUDES MIN/MAX RANGES
+      dogVaccines: {
+        min: dogVaccineCostMin,
+        max: dogVaccineCostMax
+      },
+      catVaccines: {
+        min: catVaccineCostMin,
+        max: catVaccineCostMax
+      },
       mobilization: mobilizationCost,
       publicAwareness: publicAwarenessCost,
       vaccinationTeam: vaccinationTeamCost,
       surveillance: surveillanceCost,
-      administrative: adminCost,
-      subtotal: subtotal,
-      total: totalCost
+      administrative: {
+        min: adminCostMin,
+        max: adminCostMax
+      },
+      subtotal: {
+        min: subtotalMin,
+        max: subtotalMax
+      },
+      total: {
+        min: totalCostMin,
+        max: totalCostMax
+      }
     },
     teamDaysNeeded: teamDaysNeeded,
     estimatedDuration: `${teamDaysNeeded} days`
@@ -722,21 +758,32 @@ export const calculateVaccinationCost = (municipality, targetCoveragePercent = 8
 }
 
 /**
- * Calculate human PEP (Post-Exposure Prophylaxis) cost
+ * Calculate human PEP (Post-Exposure Prophylaxis) cost WITH COST RANGES
  */
 export const calculateHumanPEPCost = (municipality, costConfig = INTERVENTION_COSTS) => {
   const infectedHumans = municipality.infectedHumans || 0
   
   // Assume 20% of exposed humans need full PEP (others may have pre-exposure)
   const fullPEPNeeded = Math.ceil(infectedHumans * 0.2)
-  const pepCost = fullPEPNeeded * costConfig.humanPEP
+  
+  // ✅ CALCULATE MIN/MAX COSTS
+  const pepCostMin = fullPEPNeeded * costConfig.humanPEP.min
+  const pepCostMax = fullPEPNeeded * costConfig.humanPEP.max
   
   return {
     municipalityId: municipality.id,
     municipalityName: municipality.name,
     exposedHumans: infectedHumans,
     pepTreatments: fullPEPNeeded,
-    cost: pepCost
+    estimatedCases: fullPEPNeeded,
+    cost: {
+      min: pepCostMin,
+      max: pepCostMax
+    },
+    costPerPerson: {
+      min: costConfig.humanPEP.min,
+      max: costConfig.humanPEP.max
+    }
   }
 }
 
@@ -793,14 +840,16 @@ export const calculateEmergencyResponseCost = (municipality, costConfig = INTERV
 }
 
 /**
- * Calculate total intervention cost for a municipality
+ * Calculate total intervention cost for a municipality WITH COST RANGES
  */
 export const calculateTotalInterventionCost = (municipality, targetCoveragePercent = 80, costConfig = INTERVENTION_COSTS) => {
   const vaccinationCost = calculateVaccinationCost(municipality, targetCoveragePercent, costConfig)
   const pepCost = calculateHumanPEPCost(municipality, costConfig)
   const emergencyCost = calculateEmergencyResponseCost(municipality, costConfig)
   
-  const totalCost = vaccinationCost.costs.total + pepCost.cost + emergencyCost.cost
+  // ✅ CALCULATE MIN/MAX TOTAL COSTS
+  const totalCostMin = vaccinationCost.costs.total.min + pepCost.cost.min + emergencyCost.cost
+  const totalCostMax = vaccinationCost.costs.total.max + pepCost.cost.max + emergencyCost.cost
   
   return {
     municipalityId: municipality.id,
@@ -811,40 +860,71 @@ export const calculateTotalInterventionCost = (municipality, targetCoveragePerce
       humanPEP: pepCost,
       emergencyResponse: emergencyCost
     },
-    totalCost: totalCost,
+    totalCost: {
+      min: totalCostMin,
+      max: totalCostMax
+    },
     costPerCapita: municipality.humanPopulation > 0 
-      ? totalCost / municipality.humanPopulation 
-      : 0
+      ? {
+          min: totalCostMin / municipality.humanPopulation,
+          max: totalCostMax / municipality.humanPopulation
+        }
+      : { min: 0, max: 0 }
   }
 }
 
 /**
- * Calculate intervention budget for all municipalities
+ * Calculate intervention budget for all municipalities WITH COST RANGES
  */
 export const calculateInterventionBudget = (municipalities, targetCoveragePercent = 80, costConfig = INTERVENTION_COSTS) => {
   const municipalityCosts = municipalities.map(m => 
     calculateTotalInterventionCost(m, targetCoveragePercent, costConfig)
   )
   
-  // Calculate totals
-  const totalVaccinationCost = municipalityCosts.reduce((sum, m) => 
-    sum + m.breakdown.vaccination.costs.total, 0
+  // ✅ CALCULATE MIN/MAX TOTALS
+  const totalVaccinationCostMin = municipalityCosts.reduce((sum, m) => 
+    sum + m.breakdown.vaccination.costs.total.min, 0
   )
-  const totalPEPCost = municipalityCosts.reduce((sum, m) => 
-    sum + m.breakdown.humanPEP.cost, 0
+  const totalVaccinationCostMax = municipalityCosts.reduce((sum, m) => 
+    sum + m.breakdown.vaccination.costs.total.max, 0
   )
+  
+  const totalPEPCostMin = municipalityCosts.reduce((sum, m) => 
+    sum + m.breakdown.humanPEP.cost.min, 0
+  )
+  const totalPEPCostMax = municipalityCosts.reduce((sum, m) => 
+    sum + m.breakdown.humanPEP.cost.max, 0
+  )
+  
   const totalEmergencyCost = municipalityCosts.reduce((sum, m) => 
     sum + m.breakdown.emergencyResponse.cost, 0
   )
-  const grandTotal = totalVaccinationCost + totalPEPCost + totalEmergencyCost
   
-  // Categorize by risk level
+  const grandTotalMin = totalVaccinationCostMin + totalPEPCostMin + totalEmergencyCost
+  const grandTotalMax = totalVaccinationCostMax + totalPEPCostMax + totalEmergencyCost
+  
+  // ✅ CATEGORIZE BY RISK LEVEL (MIN/MAX)
   const byRiskLevel = {
-    safe: municipalityCosts.filter(m => m.riskLevel === 'safe').reduce((sum, m) => sum + m.totalCost, 0),
-    low: municipalityCosts.filter(m => m.riskLevel === 'low').reduce((sum, m) => sum + m.totalCost, 0),
-    moderate: municipalityCosts.filter(m => m.riskLevel === 'moderate').reduce((sum, m) => sum + m.totalCost, 0),
-    high: municipalityCosts.filter(m => m.riskLevel === 'high').reduce((sum, m) => sum + m.totalCost, 0),
-    critical: municipalityCosts.filter(m => m.riskLevel === 'critical').reduce((sum, m) => sum + m.totalCost, 0)
+    safe: {
+      min: municipalityCosts.filter(m => m.riskLevel === 'safe').reduce((sum, m) => sum + m.totalCost.min, 0),
+      max: municipalityCosts.filter(m => m.riskLevel === 'safe').reduce((sum, m) => sum + m.totalCost.max, 0)
+    },
+    low: {
+      min: municipalityCosts.filter(m => m.riskLevel === 'low').reduce((sum, m) => sum + m.totalCost.min, 0),
+      max: municipalityCosts.filter(m => m.riskLevel === 'low').reduce((sum, m) => sum + m.totalCost.max, 0)
+    },
+    moderate: {
+      min: municipalityCosts.filter(m => m.riskLevel === 'moderate').reduce((sum, m) => sum + m.totalCost.min, 0),
+      max: municipalityCosts.filter(m => m.riskLevel === 'moderate').reduce((sum, m) => sum + m.totalCost.max, 0)
+    },
+    high: {
+      min: municipalityCosts.filter(m => m.riskLevel === 'high').reduce((sum, m) => sum + m.totalCost.min, 0),
+      max: municipalityCosts.filter(m => m.riskLevel === 'high').reduce((sum, m) => sum + m.totalCost.max, 0)
+    },
+    critical: {
+      min: municipalityCosts.filter(m => m.riskLevel === 'critical').reduce((sum, m) => sum + m.totalCost.min, 0),
+      max: municipalityCosts.filter(m => m.riskLevel === 'critical').reduce((sum, m) => sum + m.totalCost.max, 0)
+    }
   }
   
   // Calculate total vaccinations needed
@@ -860,10 +940,19 @@ export const calculateInterventionBudget = (municipalities, targetCoveragePercen
     totalMunicipalities: municipalities.length,
     municipalityCosts: municipalityCosts,
     summary: {
-      totalVaccinationCost: totalVaccinationCost,
-      totalPEPCost: totalPEPCost,
+      totalVaccinationCost: {
+        min: totalVaccinationCostMin,
+        max: totalVaccinationCostMax
+      },
+      totalPEPCost: {
+        min: totalPEPCostMin,
+        max: totalPEPCostMax
+      },
       totalEmergencyCost: totalEmergencyCost,
-      grandTotal: grandTotal
+      grandTotal: {
+        min: grandTotalMin,
+        max: grandTotalMax
+      }
     },
     byRiskLevel: byRiskLevel,
     vaccinations: {
@@ -871,12 +960,22 @@ export const calculateInterventionBudget = (municipalities, targetCoveragePercen
       cats: totalCatVaccinations,
       total: totalDogVaccinations + totalCatVaccinations
     },
-    costPerVaccine: (totalDogVaccinations + totalCatVaccinations) > 0 
-      ? totalVaccinationCost / (totalDogVaccinations + totalCatVaccinations)
-      : 0,
+    costPerVaccine: {
+      min: (totalDogVaccinations + totalCatVaccinations) > 0 
+        ? totalVaccinationCostMin / (totalDogVaccinations + totalCatVaccinations)
+        : 0,
+      max: (totalDogVaccinations + totalCatVaccinations) > 0 
+        ? totalVaccinationCostMax / (totalDogVaccinations + totalCatVaccinations)
+        : 0
+    },
+    priceRanges: {
+      dogVaccine: { min: costConfig.dogVaccine.min, max: costConfig.dogVaccine.max },
+      catVaccine: { min: costConfig.catVaccine.min, max: costConfig.catVaccine.max },
+      humanPEP: { min: costConfig.humanPEP.min, max: costConfig.humanPEP.max }
+    },
     priorityMunicipalities: municipalityCosts
       .filter(m => ['high', 'critical'].includes(m.riskLevel))
-      .sort((a, b) => b.totalCost - a.totalCost)
+      .sort((a, b) => b.totalCost.max - a.totalCost.max)
       .slice(0, 5)
   }
 }

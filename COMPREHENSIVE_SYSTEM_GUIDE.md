@@ -1066,3 +1066,38 @@ For access to synthetic training data or model parameters:
 ---
 
 *This document serves as the complete technical and user reference for the PAWPATROL system. It should be updated whenever system functionality changes or new features are added.*
+
+
+
+
+
+
+
+
+
+
+
+
+
+📋 Fixed Cost Components:
+1. Emergency Response Team: ₱10,000 per deployment
+2. Laboratory Testing: ₱500 per animal test
+3. Quarantine Facility: ₱2,000 per day
+
+
+🎯 How It's Calculated:
+
+For HIGH RISK municipalities:
+- 1 emergency team × ₱10,000 = ₱10,000
+- Up to 20 lab tests × ₱500 = ₱0 - ₱10,000
+- 3 days quarantine × ₱2,000 = ₱6,000
+- Total: ₱16,000 - ₱26,000
+
+For CRITICAL RISK municipalities:
+- 2 emergency teams × ₱10,000 = ₱20,000
+- Up to 20 lab tests × ₱500 = ₱0 - ₱10,000
+- 7 days quarantine × ₱2,000 = ₱14,000
+- Total: ₱34,000 - ₱44,000
+
+For SAFE/LOW/MODERATE risk:
+- ₱0 (no emergency response needed)

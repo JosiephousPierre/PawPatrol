@@ -68,13 +68,13 @@ export function useFormatting() {
   
   const getRiskLabel = (riskLevel) => {
     const labels = {
-      safe: 'Safe',
+      safe: 'No Risk',
       low: 'Low Risk',
       moderate: 'Moderate Risk',
       high: 'High Risk',
       critical: 'Critical'
     }
-    return labels[riskLevel] || 'Safe'
+    return labels[riskLevel] || 'No Risk'
   }
   
   const getInfectionStatusClass = (count) => {
@@ -151,12 +151,12 @@ export const formatting = {
   
   getRiskLabel: (riskLevel) => {
     const labels = {
-      safe: 'Safe',
+      safe: 'No Risk',
       low: 'Low Risk',
       moderate: 'Moderate Risk',
       high: 'High Risk',
       critical: 'Critical'
     }
-    return labels[riskLevel] || 'Safe'
+    return labels[riskLevel] || 'No Risk'
   }
 }

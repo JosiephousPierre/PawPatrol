@@ -203,7 +203,7 @@
                     <span class="font-bold text-lg" :class="getHighlightedCaseColor()">{{ municipality.sortedCases }}</span>
                     <span class="ml-1">{{ getSortedCaseLabel() }}</span>
                     <span class="mx-1">•</span>
-                    <span :class="getRiskColorText(municipality.riskLevel)">{{ municipality.riskLevel }}</span> risk
+                    <span :class="getRiskColorText(municipality.riskLevel)">{{ formatRiskLevel(municipality.riskLevel) }}</span> risk
                   </p>
                 </div>
               </div>
@@ -287,7 +287,7 @@
             <div class="mt-4 flex flex-wrap gap-4 justify-center">
               <div class="flex items-center space-x-2">
                 <div class="w-4 h-4 rounded-full bg-risk-safe"></div>
-                <span class="text-sm text-muted-blue">Safe ({{ safeCount }})</span>
+                <span class="text-sm text-muted-blue">No Risk ({{ safeCount }})</span>
               </div>
               <div class="flex items-center space-x-2">
                 <div class="w-4 h-4 rounded-full bg-risk-low"></div>
@@ -375,7 +375,7 @@ const riskDistribution = computed(() => {
   }, {})
 
   return [
-    { level: 'safe', label: 'Safe', count: distribution.safe || 0, percentage: Math.round(((distribution.safe || 0) / total) * 100) },
+    { level: 'safe', label: 'No Risk', count: distribution.safe || 0, percentage: Math.round(((distribution.safe || 0) / total) * 100) },
     { level: 'low', label: 'Low Risk', count: distribution.low || 0, percentage: Math.round(((distribution.low || 0) / total) * 100) },
     { level: 'moderate', label: 'Moderate', count: distribution.moderate || 0, percentage: Math.round(((distribution.moderate || 0) / total) * 100) },
     { level: 'high', label: 'High Risk', count: distribution.high || 0, percentage: Math.round(((distribution.high || 0) / total) * 100) },
@@ -495,7 +495,7 @@ const averageRiskLevel = computed(() => {
   
   const avgValue = totalRisk / rankedMunicipalities.value.length
   
-  if (avgValue < 0.5) return 'Safe'
+  if (avgValue < 0.5) return 'No Risk'
   if (avgValue < 1.5) return 'Low'
   if (avgValue < 2.5) return 'Moderate'
   if (avgValue < 3.5) return 'High'
@@ -505,7 +505,7 @@ const averageRiskLevel = computed(() => {
 // Color for average risk level
 const averageRiskColor = computed(() => {
   const level = averageRiskLevel.value.toLowerCase()
-  if (level === 'safe') return 'text-risk-safe'
+  if (level === 'no risk') return 'text-risk-safe'
   if (level === 'low') return 'text-risk-low'
   if (level === 'moderate') return 'text-risk-moderate'
   if (level === 'high') return 'text-risk-high'
@@ -531,6 +531,18 @@ const formatMunicipalityTooltip = (municipalities) => {
     return 'No municipalities in this category'
   }
   return municipalities.map(name => `• ${name}`).join('\n')
+}
+
+// Helper function to format risk level labels (converts 'safe' -> 'No Risk')
+const formatRiskLevel = (level) => {
+  const labels = {
+    safe: 'No Risk',
+    low: 'Low',
+    moderate: 'Moderate',
+    high: 'High',
+    critical: 'Critical'
+  }
+  return labels[level] || level
 }
 
 const formatNumber = (num) => {
@@ -680,7 +692,7 @@ const initializeMap = () => {
     const popup = L.popup().setContent(`
       <div class="text-sm">
         <h4 class="font-semibold text-dark-blue mb-2">${municipality.name}</h4>
-        <p class="text-muted-blue">Risk Level: <span class="font-medium">${municipality.riskLevel}</span></p>
+        <p class="text-muted-blue">Risk Level: <span class="font-medium">${formatRiskLevel(municipality.riskLevel)}</span></p>
         <p class="text-muted-blue">Infected: ${municipality.infectedDogs || 0} dogs</p>
         <p class="text-muted-blue">Vaccinated: ${municipality.vaccinatedDogs || 0} dogs</p>
         <p class="text-muted-blue mt-1 text-xs">Last updated: ${municipality.lastUpdated ? new Date(municipality.lastUpdated).toLocaleDateString() : 'N/A'}</p>

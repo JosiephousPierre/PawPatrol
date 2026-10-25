@@ -10,7 +10,7 @@
         </div>
       </div>
       <p class="text-xl text-muted-blue max-w-3xl mx-auto">
-        A Decision-Support Framework for Rabies Control Using Computational Transmission Modeling and AI-Driven Intervention Selection
+        A WEB-BASED DECISION-SUPPORT CLASSICAL FRAMEWORK FOR STOCHASTIC RABIES TRANSMISSION MODELING WITH FRACTIONAL-ORDER DYNAMICS, RULE-BASED ADAPTIVE INTERVENTION RECOMMENDATIONS, AND SPATIAL HETEROGENEITY IN COUPLED DOG (Canis lupus familiaris), CAT (Felis catus),  AND HUMAN POPULATIONS
       </p>
     </div>
 
